@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GuitarScroll</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #111827;
+      color: #e5e7eb;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Upload Screen ───────────────────────── */
+    #uploadScreen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      gap: 20px;
+    }
+
+    .logo {
+      font-size: 2.8rem;
+      font-weight: 800;
+      color: #f87171;
+      letter-spacing: -1px;
+    }
+
+    .tagline {
+      color: #6b7280;
+      font-size: 0.95rem;
+    }
+
+    #dropZone {
+      width: 380px;
+      height: 180px;
+      border: 2px dashed #374151;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    #dropZone:hover,
+    #dropZone.drag-over {
+      border-color: #f87171;
+      background: rgba(248, 113, 113, 0.05);
+    }
+
+    #dropZone .dz-icon  { font-size: 2.2rem; }
+    #dropZone .dz-main  { color: #d1d5db; font-size: 0.95rem; font-weight: 500; }
+    #dropZone .dz-hint  { color: #6b7280; font-size: 0.8rem; }
+
+    #fileInput { display: none; }
+
+    /* ── Viewer Screen ───────────────────────── */
+    #viewerScreen {
+      display: none;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* Toolbar */
+    #toolbar {
+      display: flex;
+      align-items: center;
+      padding: 6px 14px;
+      background: #1f2937;
+      border-bottom: 1px solid #374151;
+      gap: 10px;
+      min-height: 40px;
+      position: relative;
+      z-index: 10;
+    }
+
+    #fileName {
+      flex: 1;
+      font-size: 0.8rem;
+      color: #9ca3af;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .mic-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      color: #9ca3af;
+      background: #111827;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid #374151;
+    }
+
+    .mic-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #4b5563;
+      transition: background 0.25s;
+      flex-shrink: 0;
+    }
+    .mic-dot.listening { background: #4ade80; }
+    .mic-dot.silent    { background: #fb923c; }
+
+    #loadNewBtn {
+      background: transparent;
+      border: 1px solid #374151;
+      color: #9ca3af;
+      padding: 3px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      transition: all 0.15s;
+    }
+    #loadNewBtn:hover { border-color: #f87171; color: #f87171; }
+
+    /* Silence progress bar (under toolbar) */
+    #silenceBar {
+      height: 2px;
+      background: #374151;
+      flex-shrink: 0;
+    }
+    #silenceBarFill {
+      height: 100%;
+      width: 0%;
+      background: #fb923c;
+      transition: width 0.08s linear;
+    }
+
+    /* PDF area */
+    #pdfScroller {
+      flex: 1;
+      overflow-y: scroll;
+      overflow-x: auto;
+      background: #0d1117;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 16px;
+      gap: 10px;
+    }
+
+    #pdfScroller canvas {
+      display: block;
+      max-width: 100%;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.6);
+    }
+
+    #loadingMsg {
+      margin-top: 60px;
+      color: #4b5563;
+      font-size: 1rem;
+    }
+
+    /* Controls bar */
+    #controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 10px 20px;
+      background: #1f2937;
+      border-top: 1px solid #374151;
+    }
+
+    .cgroup {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .clabel {
+      font-size: 0.72rem;
+      color: #6b7280;
+      white-space: nowrap;
+    }
+
+    .btn {
+      background: #374151;
+      border: none;
+      color: #e5e7eb;
+      padding: 7px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      transition: background 0.15s, transform 0.1s;
+      white-space: nowrap;
+    }
+    .btn:hover  { background: #4b5563; }
+    .btn:active { transform: scale(0.96); }
+
+    .btn.play {
+      background: #f87171;
+      font-weight: 700;
+      min-width: 108px;
+      justify-content: center;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .btn.play:hover { background: #ef4444; }
+    .btn.play.paused-manual { background: #fb923c; }
+    .btn.play.paused-manual:hover { background: #f97316; }
+    .btn.play.stopped { background: #4b5563; }
+
+    .btn.mic {
+      background: #1e3a2e;
+      color: #4ade80;
+      border: 1px solid #166534;
+    }
+    .btn.mic:hover { background: #14532d; }
+    .btn.mic.off {
+      background: #374151;
+      color: #9ca3af;
+      border: 1px solid transparent;
+    }
+    .btn.mic.off:hover { background: #4b5563; }
+
+    .btn.sm {
+      padding: 6px 10px;
+      font-size: 0.82rem;
+    }
+
+    #speedVal {
+      min-width: 62px;
+      text-align: center;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #e5e7eb;
+    }
+
+    /* Sensitivity slider */
+    #sensitivitySlider {
+      -webkit-appearance: none;
+      width: 80px;
+      height: 4px;
+      border-radius: 2px;
+      background: #374151;
+      outline: none;
+      cursor: pointer;
+    }
+    #sensitivitySlider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #f87171;
+      cursor: pointer;
+    }
+
+    /* Keyboard hint */
+    #keyHint {
+      position: fixed;
+      bottom: 64px;
+      right: 14px;
+      background: rgba(17,24,39,0.92);
+      border: 1px solid #374151;
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 0.68rem;
+      color: #6b7280;
+      line-height: 1.9;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    kbd {
+      background: #374151;
+      border-radius: 3px;
+      padding: 1px 4px;
+      font-size: 0.65rem;
+      color: #d1d5db;
+      font-family: inherit;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Upload Screen ─────────────────────────── -->
+<div id="uploadScreen">
+  <div class="logo">🎸 GuitarScroll</div>
+  <div class="tagline">Gitar çalarken nota PDF'ini otomatik kaydır</div>
+  <div id="dropZone">
+    <div class="dz-icon">📄</div>
+    <div class="dz-main">PDF'ini buraya sürükle</div>
+    <div class="dz-hint">ya da tıkla seç</div>
+  </div>
+  <input type="file" id="fileInput" accept="application/pdf">
+</div>
+
+<!-- ── Viewer Screen ─────────────────────────── -->
+<div id="viewerScreen">
+
+  <div id="toolbar">
+    <span id="fileName">—</span>
+    <div class="mic-pill">
+      <div class="mic-dot" id="micDot"></div>
+      <span id="micStatusText">Mik kapalı</span>
+    </div>
+    <button id="loadNewBtn">Yeni PDF</button>
+  </div>
+
+  <!-- Orange bar: counts down to auto-pause -->
+  <div id="silenceBar"><div id="silenceBarFill"></div></div>
+
+  <div id="pdfScroller">
+    <div id="loadingMsg">PDF yükleniyor…</div>
+  </div>
+
+  <div id="controls">
+    <!-- Microphone -->
+    <div class="cgroup">
+      <button class="btn mic off" id="micBtn">🎤 Mik Aç</button>
+    </div>
+
+    <!-- Transport -->
+    <div class="cgroup">
+      <button class="btn sm" id="rewindBtn" title="Başa dön (Home)">⏮</button>
+      <button class="btn play stopped" id="playBtn">▶ Başlat</button>
+      <button class="btn sm" id="skipBtn" title="İleri (→)">⏭</button>
+    </div>
+
+    <!-- Speed -->
+    <div class="cgroup">
+      <span class="clabel">Hız</span>
+      <button class="btn sm" id="speedDownBtn">−</button>
+      <span id="speedVal">60 px/s</span>
+      <button class="btn sm" id="speedUpBtn">+</button>
+    </div>
+
+    <!-- Mic sensitivity -->
+    <div class="cgroup">
+      <span class="clabel">Hassasiyet</span>
+      <input type="range" id="sensitivitySlider" min="1" max="40" value="8">
+    </div>
+  </div>
+</div>
+
+<!-- Keyboard hint overlay -->
+<div id="keyHint">
+  <kbd>Space</kbd> Duraklat / Devam<br>
+  <kbd>↑</kbd><kbd>↓</kbd> Hız ±10 px/s<br>
+  <kbd>←</kbd><kbd>→</kbd> Kaydır<br>
+  <kbd>Home</kbd> Başa dön
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+'use strict';
+
+// ── PDF.js worker ──────────────────────────────
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ── DOM ────────────────────────────────────────
+const uploadScreen     = document.getElementById('uploadScreen');
+const viewerScreen     = document.getElementById('viewerScreen');
+const dropZone         = document.getElementById('dropZone');
+const fileInput        = document.getElementById('fileInput');
+const fileNameEl       = document.getElementById('fileName');
+const pdfScroller      = document.getElementById('pdfScroller');
+const micBtn           = document.getElementById('micBtn');
+const micDot           = document.getElementById('micDot');
+const micStatusText    = document.getElementById('micStatusText');
+const playBtn          = document.getElementById('playBtn');
+const rewindBtn        = document.getElementById('rewindBtn');
+const skipBtn          = document.getElementById('skipBtn');
+const speedDownBtn     = document.getElementById('speedDownBtn');
+const speedUpBtn       = document.getElementById('speedUpBtn');
+const speedValEl       = document.getElementById('speedVal');
+const sensitivitySlider = document.getElementById('sensitivitySlider');
+const silenceBarFill   = document.getElementById('silenceBarFill');
+const loadNewBtn       = document.getElementById('loadNewBtn');
+
+// ── Scroll state ───────────────────────────────
+let scrollSpeed    = 60;    // px/s
+let isScrolling    = false; // RAF active?
+let manualPaused   = false; // user pressed pause
+let autoPaused     = false; // silence detected
+let rafId          = null;
+let lastTs         = null;
+let scrollPos      = 0;     // float accumulator (avoids integer truncation at low speeds)
+
+// ── Mic state ──────────────────────────────────
+let micActive        = false;
+let audioCtx         = null;
+let analyserNode     = null;
+let micStream        = null;
+let silenceDuration  = 0;
+let micIntervalId    = null;
+let sensitivityThresh = 8;
+
+const SILENCE_DELAY = 1.5; // seconds until auto-pause
+
+// ── Upload ─────────────────────────────────────
+dropZone.addEventListener('click', () => fileInput.click());
+
+fileInput.addEventListener('change', e => {
+  if (e.target.files[0]) loadPDF(e.target.files[0]);
+});
+
+dropZone.addEventListener('dragover', e => {
+  e.preventDefault();
+  dropZone.classList.add('drag-over');
+});
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type === 'application/pdf') loadPDF(file);
+});
+
+loadNewBtn.addEventListener('click', () => {
+  stopScrollEngine();
+  stopMic();
+  viewerScreen.style.display = 'none';
+  uploadScreen.style.display = 'flex';
+  pdfScroller.innerHTML = '<div id="loadingMsg">PDF yükleniyor…</div>';
+  fileInput.value = '';
+  document.getElementById('keyHint').style.display = 'none';
+});
+
+// ── PDF Loading ────────────────────────────────
+async function loadPDF(file) {
+  uploadScreen.style.display = 'none';
+  viewerScreen.style.display = 'flex';
+  document.getElementById('keyHint').style.display = 'block';
+  fileNameEl.textContent = file.name;
+  pdfScroller.innerHTML = '<div style="margin-top:60px;color:#4b5563;">Sayfalar yükleniyor…</div>';
+
+  const buffer = await file.arrayBuffer();
+  const pdf    = await pdfjsLib.getDocument({ data: buffer }).promise;
+
+  pdfScroller.innerHTML = '';
+
+  for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+    const page = await pdf.getPage(pageNum);
+
+    // Scale to fit the scroller width
+    const availW   = pdfScroller.clientWidth - 32;
+    const scale1VP = page.getViewport({ scale: 1 });
+    const scale    = availW / scale1VP.width;
+    const viewport = page.getViewport({ scale });
+
+    const dpr    = window.devicePixelRatio || 1;
+    const canvas = document.createElement('canvas');
+    const ctx    = canvas.getContext('2d');
+
+    canvas.width        = Math.floor(viewport.width  * dpr);
+    canvas.height       = Math.floor(viewport.height * dpr);
+    canvas.style.width  = Math.floor(viewport.width)  + 'px';
+    canvas.style.height = Math.floor(viewport.height) + 'px';
+
+    await page.render({
+      canvasContext: ctx,
+      viewport:      page.getViewport({ scale: scale * dpr })
+    }).promise;
+
+    pdfScroller.appendChild(canvas);
+  }
+
+  pdfScroller.scrollTop = 0;
+  scrollPos = 0;
+  resetScrollState();
+}
+
+// ── Scroll engine ──────────────────────────────
+function scrollStep(timestamp) {
+  if (lastTs === null) lastTs = timestamp;
+  const dt = Math.min((timestamp - lastTs) / 1000, 0.1); // cap delta at 100 ms
+  lastTs = timestamp;
+
+  if (!manualPaused && !autoPaused) {
+    scrollPos += scrollSpeed * dt;
+    pdfScroller.scrollTop = scrollPos;
+  } else {
+    // Sync accumulator if user manually scrolled while paused
+    scrollPos = pdfScroller.scrollTop;
+  }
+
+  rafId = requestAnimationFrame(scrollStep);
+}
+
+function startScrollEngine() {
+  if (!rafId) rafId = requestAnimationFrame(scrollStep);
+}
+
+function stopScrollEngine() {
+  isScrolling  = false;
+  manualPaused = false;
+  if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+  updatePlayBtn();
+}
+
+function resetScrollState() {
+  stopScrollEngine();
+}
+
+// Play / Pause toggle
+function togglePlay() {
+  if (!isScrolling) {
+    // First press — start
+    isScrolling  = true;
+    manualPaused = false;
+    lastTs       = null;
+    startScrollEngine();
+  } else if (!manualPaused) {
+    manualPaused = true;
+  } else {
+    manualPaused = false;
+  }
+  updatePlayBtn();
+}
+
+function updatePlayBtn() {
+  const btn = playBtn;
+  btn.classList.remove('stopped', 'paused-manual');
+
+  if (!isScrolling) {
+    btn.textContent = '▶ Başlat';
+    btn.classList.add('stopped');
+  } else if (manualPaused) {
+    btn.textContent = '▶ Devam';
+    btn.classList.add('paused-manual');
+  } else {
+    btn.textContent = '⏸ Duraklat';
+  }
+}
+
+playBtn.addEventListener('click', togglePlay);
+rewindBtn.addEventListener('click', () => { pdfScroller.scrollTop = 0; scrollPos = 0; });
+skipBtn.addEventListener('click',   () => { pdfScroller.scrollTop += 400; });
+
+function changeSpeed(delta) {
+  scrollSpeed = Math.max(5, Math.min(400, scrollSpeed + delta));
+  speedValEl.textContent = scrollSpeed + ' px/s';
+}
+speedDownBtn.addEventListener('click', () => changeSpeed(-1));
+speedUpBtn.addEventListener('click',   () => changeSpeed(1));
+
+// ── Microphone ─────────────────────────────────
+micBtn.addEventListener('click', () => {
+  micActive ? stopMic() : startMic();
+});
+
+async function startMic() {
+  try {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') await audioCtx.resume();
+
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    const source = audioCtx.createMediaStreamSource(micStream);
+    analyserNode = audioCtx.createAnalyser();
+    analyserNode.fftSize = 2048;
+    source.connect(analyserNode);
+
+    micActive = true;
+    micBtn.textContent = '🎤 Mik Kapat';
+    micBtn.classList.remove('off');
+
+    startMicLoop();
+  } catch (err) {
+    alert('Mikrofon erişimi sağlanamadı:\n' + err.message);
+  }
+}
+
+function stopMic() {
+  micActive = false;
+  clearInterval(micIntervalId);
+  micIntervalId = null;
+
+  if (micStream) {
+    micStream.getTracks().forEach(t => t.stop());
+    micStream = null;
+  }
+  if (analyserNode) { analyserNode.disconnect(); analyserNode = null; }
+
+  autoPaused        = false;
+  silenceDuration   = 0;
+  silenceBarFill.style.width = '0%';
+
+  micBtn.textContent = '🎤 Mik Aç';
+  micBtn.classList.add('off');
+  micDot.className   = 'mic-dot';
+  micStatusText.textContent = 'Mik kapalı';
+}
+
+function computeRMS() {
+  const buf = new Uint8Array(analyserNode.fftSize);
+  analyserNode.getByteTimeDomainData(buf);
+  let sum = 0;
+  for (let i = 0; i < buf.length; i++) {
+    const v = buf[i] - 128;
+    sum += v * v;
+  }
+  return Math.sqrt(sum / buf.length);
+}
+
+function startMicLoop() {
+  if (micIntervalId) clearInterval(micIntervalId);
+
+  micIntervalId = setInterval(() => {
+    if (!micActive || !analyserNode) return;
+
+    const rms = computeRMS();
+
+    if (rms >= sensitivityThresh) {
+      // Sound detected → resume if auto-paused
+      silenceDuration = 0;
+      if (autoPaused) {
+        autoPaused = false;
+      }
+      micDot.className      = 'mic-dot listening';
+      micStatusText.textContent = 'Ses algılandı';
+      silenceBarFill.style.width = '0%';
+
+    } else {
+      // Silence
+      silenceDuration += 0.05; // 50 ms tick
+
+      const progress = Math.min(silenceDuration / SILENCE_DELAY, 1);
+      silenceBarFill.style.width = (progress * 100) + '%';
+
+      if (silenceDuration >= SILENCE_DELAY) {
+        if (!autoPaused) autoPaused = true;
+        micDot.className           = 'mic-dot silent';
+        micStatusText.textContent  = 'Sessizlik — durakladı';
+      } else {
+        micDot.className           = 'mic-dot listening';
+        micStatusText.textContent  = 'Ses algılandı';
+      }
+    }
+  }, 50);
+}
+
+sensitivitySlider.addEventListener('input', e => {
+  sensitivityThresh = parseInt(e.target.value, 10);
+});
+
+// ── Keyboard shortcuts ─────────────────────────
+document.addEventListener('keydown', e => {
+  if (viewerScreen.style.display === 'none') return;
+  // Don't fire on inputs
+  if (e.target.tagName === 'INPUT') return;
+
+  switch (e.code) {
+    case 'Space':
+      e.preventDefault();
+      togglePlay();
+      break;
+    case 'ArrowUp':
+      e.preventDefault();
+      changeSpeed(10);
+      break;
+    case 'ArrowDown':
+      e.preventDefault();
+      changeSpeed(-10);
+      break;
+    case 'ArrowRight':
+      e.preventDefault();
+      pdfScroller.scrollTop += 200;
+      break;
+    case 'ArrowLeft':
+      e.preventDefault();
+      pdfScroller.scrollTop -= 200;
+      break;
+    case 'Home':
+      e.preventDefault();
+      pdfScroller.scrollTop = 0;
+      break;
+  }
+});
+
+// Hide key hint on upload screen
+document.getElementById('keyHint').style.display = 'none';
+</script>
+</body>
+</html>
