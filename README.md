@@ -10,29 +10,34 @@
 
 Reading guitar notation or tabs from a PDF means constantly stopping to scroll the page — breaking your flow and interrupting your playing.
 
-Fixed-speed auto-scroll tools (browser extensions, etc.) don't help much either: the speed never quite matches your actual playing pace, especially when you slow down for a tricky passage or pause to think.
+A fixed `px/s` auto-scroll never quite matches your real playing pace (pixels per second isn't a musical unit), and at every page break you hit a blank gap and lose sight of the notes.
 
 ## The Solution
 
-GuitarScroll listens to your playing via the microphone:
+- **Page gaps are gone.** Every staff system is cut out of the PDF and stacked into one continuous sheet; page margins are trimmed so the notes are also bigger.
+- **Speed is musical.** GuitarScroll detects the staff systems and the bar lines automatically, so you set a **tempo (BPM)** and the page moves one measure per `beats × 60 / BPM` seconds. The current measure is highlighted, with a moving "now" line.
+- **Level presets** (Beginner / Intermediate / Advanced) set tempo, metronome, count-in, pause tolerance and how far ahead you can see.
+- **Metronome + count-in** (accented first beat, audible count-in measure), plus a **Tap tempo** button to find your own pace.
+- **Mic smart pause** (as before): scroll pauses after silence and resumes when you play.
+- **🎧 Listen-and-follow (beta):** the app listens to your note onsets, matches them to the note columns it found in the tab, and adapts the tempo to how you actually play.
 
-- **Scroll continues** while you're playing
-- **Scroll pauses** automatically after ~1.5 seconds of silence
-- **Scroll resumes** the moment you start playing again
+### About "Yousician-style" following
 
-No tapping, no clicking, no interruptions.
+True note-by-note following needs the score as data (MusicXML/MIDI) plus polyphonic pitch tracking. A PDF is just a picture, so GuitarScroll does the realistic version: it reads the *rhythm* (where notes are on the tab) and follows your *tempo* by median inter-onset timing, which tolerates missed or extra notes. Position is only approximate (it can trail you by about half a measure); click a measure (or scroll) to re-sync at any time.
 
 ---
 
 ## Features
 
 - 📄 **PDF upload** — drag & drop or file picker
-- 🎤 **Mic-based smart pause** — silence detection via Web Audio API
-- 🎚️ **Adjustable scroll speed** — fine-tune 1 px/s at a time
-- 🎛️ **Mic sensitivity slider** — adapt to noisy environments
-- ⌨️ **Keyboard shortcuts** — hands-free control
-- 🌑 **Dark theme** — easy on the eyes in dimly lit practice rooms
-- 📦 **Single HTML file** — no install, no server, no dependencies
+- 📐 **Automatic system / bar-line detection** for staff + tab scores (falls back to fixed px/s mode for other PDFs)
+- ♩ **BPM-based scrolling**, per-song remembered tempo
+- 🥁 **Metronome, count-in, tap tempo**
+- 🎤 **Mic-based smart pause** with a live level meter
+- 🎧 **Listen-and-follow tempo adaptation (beta)**
+- 🖱️ **Click a measure to jump there**; manual scrolling re-syncs the position
+- ⌨️ **Keyboard shortcuts** — hands-free / pedal friendly
+- 🌑 **Dark theme**, single HTML file, no dependencies besides PDF.js
 
 ---
 
@@ -57,36 +62,24 @@ python3 -m http.server 8080
 
 | Key | Action |
 |-----|--------|
-| `Space` | Pause / Resume scroll |
-| `↑` | Increase speed (+1 px/s) |
-| `↓` | Decrease speed (−1 px/s) |
-| `→` | Jump forward 200px |
-| `←` | Jump back 200px |
-| `Home` | Go to beginning |
+| `Space` | Start / pause / resume |
+| `↑` / `↓` | Tempo ±1 BPM (`Shift`: ±5). In fixed-speed mode: ±10 px/s |
+| `→` / `←` | Next / previous measure |
+| `PgDn` / `PgUp` | Next / previous staff line |
+| `Home` | Back to the start |
+| `M` | Metronome on/off |
 
----
+**Mic status indicators:** 🟢 sound detected · 🟠 silence, scroll paused · orange bar under the toolbar counts down to the auto-pause.
 
-## Controls
-
-| Control | Description |
-|---------|-------------|
-| **🎤 Mik Aç / Kapat** | Toggle microphone |
-| **▶ Başlat / ⏸ Duraklat** | Start or manually pause scroll |
-| **⏮ / ⏭** | Return to top / jump forward |
-| **Hız − / +** | Adjust scroll speed (1 px/s steps) |
-| **Hassasiyet slider** | Set mic sensitivity threshold |
-
-**Mic status indicators:**
-- 🟢 Green dot — sound detected, scrolling active
-- 🟠 Orange dot — silence detected, scroll paused
-- Orange bar below toolbar — counts down to auto-pause (1.5 s)
+> **Tip:** with the metronome on, use headphones so the click doesn't reach the microphone.
 
 ---
 
 ## Tech Stack
 
 - **[PDF.js](https://mozilla.github.io/pdf.js/)** — PDF rendering in the browser
-- **Web Audio API** — microphone input & RMS energy analysis
+- **Canvas pixel analysis** — staff-line, bar-line and note-column detection
+- **Web Audio API** — metronome scheduling, microphone level & onset detection
 - **Vanilla HTML/CSS/JS** — zero dependencies, single file
 
 ---

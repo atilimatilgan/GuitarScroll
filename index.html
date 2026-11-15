@@ -12,6 +12,7 @@
       color: #e5e7eb;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       height: 100vh;
+      height: 100dvh;
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -23,24 +24,16 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
+      height: 100%;
       gap: 20px;
+      padding: 16px;
+      text-align: center;
     }
-
-    .logo {
-      font-size: 2.8rem;
-      font-weight: 800;
-      color: #f87171;
-      letter-spacing: -1px;
-    }
-
-    .tagline {
-      color: #6b7280;
-      font-size: 0.95rem;
-    }
+    .logo { font-size: 2.8rem; font-weight: 800; color: #f87171; letter-spacing: -1px; }
+    .tagline { color: #6b7280; font-size: 0.95rem; }
 
     #dropZone {
-      width: 380px;
+      width: min(380px, 100%);
       height: 180px;
       border: 2px dashed #374151;
       border-radius: 16px;
@@ -53,241 +46,164 @@
       gap: 10px;
       margin-top: 8px;
     }
-
-    #dropZone:hover,
-    #dropZone.drag-over {
-      border-color: #f87171;
-      background: rgba(248, 113, 113, 0.05);
-    }
-
-    #dropZone .dz-icon  { font-size: 2.2rem; }
-    #dropZone .dz-main  { color: #d1d5db; font-size: 0.95rem; font-weight: 500; }
-    #dropZone .dz-hint  { color: #6b7280; font-size: 0.8rem; }
-
+    #dropZone:hover, #dropZone.drag-over { border-color: #f87171; background: rgba(248,113,113,0.05); }
+    #dropZone .dz-icon { font-size: 2.2rem; }
+    #dropZone .dz-main { color: #d1d5db; font-size: 0.95rem; font-weight: 500; }
+    #dropZone .dz-hint { color: #6b7280; font-size: 0.8rem; }
     #fileInput { display: none; }
 
     /* ── Viewer Screen ───────────────────────── */
-    #viewerScreen {
-      display: none;
-      flex-direction: column;
-      height: 100vh;
-    }
+    #viewerScreen { display: none; flex-direction: column; height: 100%; min-height: 0; }
 
-    /* Toolbar */
     #toolbar {
-      display: flex;
-      align-items: center;
-      padding: 6px 14px;
-      background: #1f2937;
-      border-bottom: 1px solid #374151;
-      gap: 10px;
-      min-height: 40px;
-      position: relative;
-      z-index: 10;
+      display: flex; align-items: center; padding: 6px 14px;
+      background: #1f2937; border-bottom: 1px solid #374151;
+      gap: 10px; min-height: 40px; position: relative; z-index: 10;
     }
-
     #fileName {
-      flex: 1;
-      font-size: 0.8rem;
-      color: #9ca3af;
+      flex: 1; font-size: 0.8rem; color: #9ca3af;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
+    }
+    .pill {
+      display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #9ca3af;
+      background: #111827; padding: 3px 10px; border-radius: 999px; border: 1px solid #374151;
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
-
-    .mic-pill {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.75rem;
-      color: #9ca3af;
-      background: #111827;
-      padding: 3px 8px;
-      border-radius: 999px;
-      border: 1px solid #374151;
-    }
-
-    .mic-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #4b5563;
-      transition: background 0.25s;
-      flex-shrink: 0;
-    }
+    .pill b { color: #e5e7eb; font-weight: 600; }
+    .mic-dot { width: 8px; height: 8px; border-radius: 50%; background: #4b5563; transition: background 0.25s; flex-shrink: 0; }
     .mic-dot.listening { background: #4ade80; }
     .mic-dot.silent    { background: #fb923c; }
 
+    .beatDots { display: flex; gap: 5px; align-items: center; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; background: #374151; transition: background 0.06s; }
+    .dot.on { background: #f87171; }
+    .dot.on.first { background: #fbbf24; }
+
     #loadNewBtn {
-      background: transparent;
-      border: 1px solid #374151;
-      color: #9ca3af;
-      padding: 3px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.75rem;
-      transition: all 0.15s;
+      background: transparent; border: 1px solid #374151; color: #9ca3af;
+      padding: 3px 10px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; transition: all 0.15s;
     }
     #loadNewBtn:hover { border-color: #f87171; color: #f87171; }
 
-    /* Silence progress bar (under toolbar) */
-    #silenceBar {
-      height: 2px;
-      background: #374151;
-      flex-shrink: 0;
-    }
-    #silenceBarFill {
-      height: 100%;
-      width: 0%;
-      background: #fb923c;
-      transition: width 0.08s linear;
-    }
+    #silenceBar { height: 2px; background: #374151; flex-shrink: 0; }
+    #silenceBarFill { height: 100%; width: 0%; background: #fb923c; transition: width 0.08s linear; }
 
     /* PDF area */
+    #scrollerWrap { flex: 1; min-height: 0; position: relative; background: #0d1117; }
     #pdfScroller {
-      flex: 1;
-      overflow-y: scroll;
-      overflow-x: auto;
-      background: #0d1117;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 16px 16px;
-      gap: 10px;
+      position: absolute; inset: 0;
+      overflow-y: scroll; overflow-x: hidden;
+      padding: 16px 16px 0;
+      overscroll-behavior: contain;
     }
+    #paper { width: 100%; margin: 0 auto; box-shadow: 0 2px 16px rgba(0,0,0,0.6); background: #fff; }
+    .slice { position: relative; line-height: 0; width: 100%; }
+    .slice canvas { display: block; width: 100%; height: auto; }
+    .slice.system { cursor: pointer; }
+    #endSpacer { width: 1px; }
+    .msg { margin-top: 60px; color: #6b7280; font-size: 1rem; text-align: center; }
 
-    #pdfScroller canvas {
-      display: block;
-      max-width: 100%;
-      box-shadow: 0 2px 16px rgba(0,0,0,0.6);
+    /* current measure highlight + "now" line */
+    #measureHi {
+      position: absolute; top: 0; bottom: 0; pointer-events: none;
+      background: rgba(239,68,68,0.10); transition: background 0.25s; display: none;
     }
+    #measureHi.waiting { background: rgba(251,146,60,0.16); }
+    #nowLine {
+      position: absolute; top: 4%; bottom: 4%; width: 2px; margin-left: -1px;
+      background: rgba(239,68,68,0.85); border-radius: 1px;
+    }
+    #measureHi.waiting #nowLine { background: rgba(251,146,60,0.9); }
 
-    #loadingMsg {
-      margin-top: 60px;
-      color: #4b5563;
-      font-size: 1rem;
+    #countIn {
+      position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%);
+      font-size: 7rem; font-weight: 800; color: #f87171; opacity: 0;
+      text-shadow: 0 4px 30px rgba(0,0,0,0.7); pointer-events: none; transition: opacity 0.1s;
+      background: rgba(17,24,39,0.55); border-radius: 24px; padding: 0 36px; line-height: 1.25;
     }
+    #countIn.show { opacity: 1; }
 
     /* Controls bar */
+    #controlsWrap { position: relative; }
     #controls {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 12px;
-      padding: 10px 20px;
-      background: #1f2937;
-      border-top: 1px solid #374151;
+      display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+      gap: 10px 14px; padding: 9px 14px;
+      background: #1f2937; border-top: 1px solid #374151;
     }
-
-    .cgroup {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .clabel {
-      font-size: 0.72rem;
-      color: #6b7280;
-      white-space: nowrap;
-    }
+    .cgroup { display: flex; align-items: center; gap: 6px; }
+    .clabel { font-size: 0.72rem; color: #6b7280; white-space: nowrap; }
 
     .btn {
-      background: #374151;
-      border: none;
-      color: #e5e7eb;
-      padding: 7px 14px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.88rem;
-      transition: background 0.15s, transform 0.1s;
-      white-space: nowrap;
+      background: #374151; border: none; color: #e5e7eb; padding: 7px 14px; border-radius: 8px;
+      cursor: pointer; font-size: 0.88rem; transition: background 0.15s, transform 0.1s; white-space: nowrap;
+      font-family: inherit;
     }
     .btn:hover  { background: #4b5563; }
     .btn:active { transform: scale(0.96); }
+    .btn.sm { padding: 6px 10px; font-size: 0.82rem; }
 
-    .btn.play {
-      background: #f87171;
-      font-weight: 700;
-      min-width: 108px;
-      justify-content: center;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-    }
+    .btn.play { background: #f87171; font-weight: 700; min-width: 108px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
     .btn.play:hover { background: #ef4444; }
     .btn.play.paused-manual { background: #fb923c; }
     .btn.play.paused-manual:hover { background: #f97316; }
     .btn.play.stopped { background: #4b5563; }
 
-    .btn.mic {
-      background: #1e3a2e;
-      color: #4ade80;
-      border: 1px solid #166534;
-    }
+    .btn.mic { background: #1e3a2e; color: #4ade80; border: 1px solid #166534; }
     .btn.mic:hover { background: #14532d; }
-    .btn.mic.off {
-      background: #374151;
-      color: #9ca3af;
-      border: 1px solid transparent;
-    }
+    .btn.mic.off { background: #374151; color: #9ca3af; border: 1px solid transparent; }
     .btn.mic.off:hover { background: #4b5563; }
 
-    .btn.sm {
-      padding: 6px 10px;
-      font-size: 0.82rem;
-    }
+    .btn.toggle.on { background: #7c2d12; color: #fdba74; box-shadow: inset 0 0 0 1px #c2410c; }
 
-    #speedVal {
-      min-width: 62px;
-      text-align: center;
-      font-size: 0.88rem;
-      font-weight: 600;
-      color: #e5e7eb;
+    #bpmInput {
+      width: 56px; text-align: center; font-size: 1rem; font-weight: 700; color: #e5e7eb;
+      background: #111827; border: 1px solid #374151; border-radius: 8px; padding: 5px 4px;
+      -moz-appearance: textfield; font-family: inherit;
     }
+    #bpmInput::-webkit-outer-spin-button, #bpmInput::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    #bpmInput:focus { outline: none; border-color: #f87171; }
 
-    /* Sensitivity slider */
-    #sensitivitySlider {
-      -webkit-appearance: none;
-      width: 80px;
-      height: 4px;
-      border-radius: 2px;
-      background: #374151;
-      outline: none;
-      cursor: pointer;
+    .seg { display: inline-flex; border: 1px solid #374151; border-radius: 8px; overflow: hidden; }
+    .seg button {
+      background: #111827; color: #9ca3af; border: none; padding: 6px 10px; font-size: 0.78rem;
+      cursor: pointer; border-right: 1px solid #374151; font-family: inherit; white-space: nowrap;
     }
-    #sensitivitySlider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: #f87171;
-      cursor: pointer;
-    }
+    .seg button:last-child { border-right: none; }
+    .seg button:hover { background: #1f2937; }
+    .seg button.active { background: #f87171; color: #fff; font-weight: 600; }
 
-    /* Keyboard hint */
-    #keyHint {
-      position: fixed;
-      bottom: 64px;
-      right: 14px;
-      background: rgba(17,24,39,0.92);
-      border: 1px solid #374151;
-      border-radius: 8px;
-      padding: 7px 12px;
-      font-size: 0.68rem;
-      color: #6b7280;
-      line-height: 1.9;
-      pointer-events: none;
-      user-select: none;
-    }
+    input[type=range] { -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; background: #374151; outline: none; cursor: pointer; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #f87171; cursor: pointer; }
+    input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border: none; border-radius: 50%; background: #f87171; cursor: pointer; }
 
-    kbd {
-      background: #374151;
-      border-radius: 3px;
-      padding: 1px 4px;
-      font-size: 0.65rem;
-      color: #d1d5db;
-      font-family: inherit;
+    /* Settings panel */
+    #settings {
+      position: absolute; right: 10px; bottom: calc(100% + 8px); z-index: 30;
+      width: min(540px, calc(100vw - 20px)); max-height: 68vh; overflow-y: auto;
+      background: #1f2937; border: 1px solid #374151; border-radius: 14px; padding: 14px 16px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.55); display: flex; flex-direction: column; gap: 11px;
+    }
+    #settings[hidden] { display: none; }
+    .srow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .slabel { font-size: 0.78rem; color: #9ca3af; min-width: 118px; }
+    .sval { font-size: 0.78rem; color: #e5e7eb; min-width: 46px; text-align: right; }
+    .shint { font-size: 0.72rem; color: #6b7280; line-height: 1.5; }
+    .shint b { color: #9ca3af; }
+    .sdiv { border: none; border-top: 1px solid #374151; }
+    .stitle { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: #6b7280; }
+    .meter { position: relative; width: 110px; height: 8px; background: #111827; border: 1px solid #374151; border-radius: 4px; overflow: hidden; }
+    #levelFill { height: 100%; width: 0; background: #4ade80; transition: width 0.05s linear; }
+    #levelThr { position: absolute; top: 0; bottom: 0; width: 2px; background: #f87171; }
+    .chk { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #d1d5db; cursor: pointer; }
+    .chk input { accent-color: #f87171; width: 16px; height: 16px; }
+    kbd { background: #374151; border-radius: 3px; padding: 1px 5px; font-size: 0.68rem; color: #d1d5db; font-family: inherit; }
+    .keys { font-size: 0.74rem; color: #9ca3af; line-height: 2; }
+
+    @media (max-width: 640px) {
+      .logo { font-size: 2.2rem; }
+      #toolbar { flex-wrap: wrap; }
+      .hide-sm { display: none !important; }
+      #countIn { font-size: 5rem; }
     }
   </style>
 </head>
@@ -310,7 +226,9 @@
 
   <div id="toolbar">
     <span id="fileName">—</span>
-    <div class="mic-pill">
+    <span class="pill" id="posInfo">—</span>
+    <div class="beatDots hide-sm" id="beatDots" title="Vuruş göstergesi"></div>
+    <div class="pill">
       <div class="mic-dot" id="micDot"></div>
       <span id="micStatusText">Mik kapalı</span>
     </div>
@@ -320,379 +238,1311 @@
   <!-- Orange bar: counts down to auto-pause -->
   <div id="silenceBar"><div id="silenceBarFill"></div></div>
 
-  <div id="pdfScroller">
-    <div id="loadingMsg">PDF yükleniyor…</div>
+  <div id="scrollerWrap">
+    <div id="pdfScroller">
+      <div class="msg" id="loadingMsg">PDF yükleniyor…</div>
+    </div>
+    <div id="countIn"></div>
   </div>
 
-  <div id="controls">
-    <!-- Microphone -->
-    <div class="cgroup">
-      <button class="btn mic off" id="micBtn">🎤 Mik Aç</button>
+  <div id="controlsWrap">
+
+    <!-- Ayarlar -->
+    <div id="settings" hidden>
+      <div class="stitle">Çalma seviyesi</div>
+      <div class="srow">
+        <div class="seg" id="levelSeg">
+          <button data-level="beginner">🐢 Başlangıç</button>
+          <button data-level="mid">🚶 Orta</button>
+          <button data-level="advanced">🏃 İleri</button>
+        </div>
+      </div>
+      <div class="shint" id="levelHint"></div>
+
+      <hr class="sdiv">
+      <div class="stitle">Tempo ve ölçü</div>
+      <div class="srow">
+        <span class="slabel">Ölçüde vuruş sayısı</span>
+        <div class="seg" id="beatsSeg">
+          <button data-beats="2">2</button><button data-beats="3">3</button>
+          <button data-beats="4">4</button><button data-beats="6">6</button>
+        </div>
+        <span class="shint">4/4 → 4 · 3/4 → 3 · 2/4 → 2 · 6/8 → 2 (ya da 6)</span>
+      </div>
+      <div class="srow">
+        <span class="slabel">Başlamadan önce sayım</span>
+        <div class="seg" id="countSeg">
+          <button data-count="0">Yok</button><button data-count="1">1 ölçü</button><button data-count="2">2 ölçü</button>
+        </div>
+      </div>
+      <div class="srow">
+        <span class="slabel">Metronom sesi</span>
+        <input type="range" id="volSlider" min="0" max="100" value="60" style="width:140px">
+      </div>
+
+      <hr class="sdiv">
+      <div class="stitle">Mikrofon</div>
+      <div class="srow">
+        <span class="slabel">Hassasiyet eşiği</span>
+        <input type="range" id="sensSlider" min="1" max="40" value="8" style="width:140px">
+        <div class="meter" title="Yeşil çubuk anlık ses seviyesi, kırmızı çizgi eşik"><div id="levelFill"></div><div id="levelThr"></div></div>
+      </div>
+      <div class="srow">
+        <span class="slabel">Sessizlikte durma</span>
+        <input type="range" id="silSlider" min="5" max="50" value="15" style="width:140px">
+        <span class="sval" id="silVal">1.5 sn</span>
+      </div>
+      <div class="shint">Eşik, gitar çalarken yeşil çubuğun <b>kırmızı çizginin sağına</b> geçeceği, sessizken geçmeyeceği şekilde ayarlanmalı. Metronom açıksa kulaklık kullanın.</div>
+      <label class="chk">
+        <input type="checkbox" id="followChk">
+        <span>🎧 Dinleyerek tempo takibi <b style="color:#fbbf24">(beta)</b></span>
+      </label>
+      <div class="shint" id="followHint">Notaları duydukça tempoyu çalışına göre ayarlar. Mikrofon gerektirir; metronomla birlikte kullanılamaz.</div>
+
+      <hr class="sdiv">
+      <div class="stitle">Görünüm ve kaydırma</div>
+      <div class="srow">
+        <span class="slabel">Okuma çizgisi</span>
+        <input type="range" id="readSlider" min="5" max="45" value="20" style="width:140px">
+        <span class="sval" id="readVal">%20</span>
+        <span class="shint">Çaldığın satır ekranın üstten bu kadarında durur.</span>
+      </div>
+      <div class="srow">
+        <span class="slabel">Kaydırma modu</span>
+        <div class="seg" id="modeSeg">
+          <button data-mode="measure">Ölçüye göre (BPM)</button>
+          <button data-mode="speed">Sabit hız (px/sn)</button>
+        </div>
+      </div>
+      <div class="srow" id="speedRow">
+        <span class="slabel">Sabit hız</span>
+        <button class="btn sm" id="speedDownBtn">−</button>
+        <span class="sval" id="speedVal" style="min-width:62px;text-align:center">60 px/s</span>
+        <button class="btn sm" id="speedUpBtn">+</button>
+      </div>
+      <div class="shint" id="detectInfo"></div>
+
+      <hr class="sdiv">
+      <div class="stitle">Kısayollar</div>
+      <div class="keys">
+        <kbd>Space</kbd> Başlat/duraklat · <kbd>↑</kbd><kbd>↓</kbd> BPM ±1 (<kbd>Shift</kbd> ±5) · <kbd>←</kbd><kbd>→</kbd> önceki/sonraki ölçü ·
+        <kbd>PgUp</kbd><kbd>PgDn</kbd> önceki/sonraki satır · <kbd>Home</kbd> başa dön · <kbd>M</kbd> metronom · notaya <b>tıkla</b>: o ölçüye atla ·
+        fare/parmakla kaydırırsan konum buna göre güncellenir
+      </div>
     </div>
 
-    <!-- Transport -->
-    <div class="cgroup">
-      <button class="btn sm" id="rewindBtn" title="Başa dön (Home)">⏮</button>
-      <button class="btn play stopped" id="playBtn">▶ Başlat</button>
-      <button class="btn sm" id="skipBtn" title="İleri (→)">⏭</button>
-    </div>
+    <div id="controls">
+      <div class="cgroup">
+        <button class="btn mic off" id="micBtn">🎤 Mik Aç</button>
+      </div>
 
-    <!-- Speed -->
-    <div class="cgroup">
-      <span class="clabel">Hız</span>
-      <button class="btn sm" id="speedDownBtn">−</button>
-      <span id="speedVal">60 px/s</span>
-      <button class="btn sm" id="speedUpBtn">+</button>
-    </div>
+      <div class="cgroup">
+        <button class="btn sm" id="rewindBtn" title="Başa dön (Home)">⏮</button>
+        <button class="btn play stopped" id="playBtn">▶ Başlat</button>
+        <button class="btn sm" id="skipBtn" title="Sonraki satır (PgDn)">⏭</button>
+      </div>
 
-    <!-- Mic sensitivity -->
-    <div class="cgroup">
-      <span class="clabel">Hassasiyet</span>
-      <input type="range" id="sensitivitySlider" min="1" max="40" value="8">
+      <div class="cgroup">
+        <span class="clabel">♩ Tempo</span>
+        <button class="btn sm" id="bpmDownBtn" title="−1 (↓)">−</button>
+        <input type="number" id="bpmInput" min="30" max="220" value="70" inputmode="numeric" title="Dakikadaki vuruş sayısı">
+        <button class="btn sm" id="bpmUpBtn" title="+1 (↑)">+</button>
+        <button class="btn sm" id="tapBtn" title="Çalış hızında birkaç kez dokun">Tap</button>
+      </div>
+
+      <div class="cgroup">
+        <button class="btn toggle" id="metroBtn" title="Metronom (M)">🥁 Metronom</button>
+      </div>
+
+      <div class="cgroup">
+        <button class="btn" id="settingsBtn">⚙ Ayarlar</button>
+      </div>
     </div>
   </div>
-</div>
-
-<!-- Keyboard hint overlay -->
-<div id="keyHint">
-  <kbd>Space</kbd> Duraklat / Devam<br>
-  <kbd>↑</kbd><kbd>↓</kbd> Hız ±10 px/s<br>
-  <kbd>←</kbd><kbd>→</kbd> Kaydır<br>
-  <kbd>Home</kbd> Başa dön
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
 'use strict';
 
-// ── PDF.js worker ──────────────────────────────
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-// ── DOM ────────────────────────────────────────
-const uploadScreen     = document.getElementById('uploadScreen');
-const viewerScreen     = document.getElementById('viewerScreen');
-const dropZone         = document.getElementById('dropZone');
-const fileInput        = document.getElementById('fileInput');
-const fileNameEl       = document.getElementById('fileName');
-const pdfScroller      = document.getElementById('pdfScroller');
-const micBtn           = document.getElementById('micBtn');
-const micDot           = document.getElementById('micDot');
-const micStatusText    = document.getElementById('micStatusText');
-const playBtn          = document.getElementById('playBtn');
-const rewindBtn        = document.getElementById('rewindBtn');
-const skipBtn          = document.getElementById('skipBtn');
-const speedDownBtn     = document.getElementById('speedDownBtn');
-const speedUpBtn       = document.getElementById('speedUpBtn');
-const speedValEl       = document.getElementById('speedVal');
-const sensitivitySlider = document.getElementById('sensitivitySlider');
-const silenceBarFill   = document.getElementById('silenceBarFill');
-const loadNewBtn       = document.getElementById('loadNewBtn');
+/* ════════════════════════════════════════════════════════════
+   Yardımcılar & ayarlar
+   ════════════════════════════════════════════════════════════ */
+const $     = id => document.getElementById(id);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const mod   = (a, n) => ((a % n) + n) % n;
 
-// ── Scroll state ───────────────────────────────
-let scrollSpeed    = 60;    // px/s
-let isScrolling    = false; // RAF active?
-let manualPaused   = false; // user pressed pause
-let autoPaused     = false; // silence detected
-let rafId          = null;
-let lastTs         = null;
-let scrollPos      = 0;     // float accumulator (avoids integer truncation at low speeds)
+const SKEY = 'guitarscroll.v2';
+const SONGS_KEY = 'guitarscroll.v2.songs';
+const DEFAULTS = {
+  bpm: 70, beats: 4, level: 'mid', metro: false, vol: 60, countIn: 1,
+  sens: 8, silence: 1.5, readFrac: 0.20, mode: 'measure', speed: 60, follow: false
+};
+const LEVELS = {
+  beginner: { bpm: 50, metro: true,  countIn: 1, silence: 2.5, readFrac: 0.14,
+              hint: '<b>Başlangıç:</b> yavaş tempo (50), metronom açık, 1 ölçü sayım, durup düşünmen için 2.5 sn tolerans, sonraki satırları daha çok görürsün.' },
+  mid:      { bpm: 70, metro: false, countIn: 1, silence: 1.5, readFrac: 0.20,
+              hint: '<b>Orta:</b> tempo 70, metronom kapalı, 1 ölçü sayım, 1.5 sn sessizlikte durur.' },
+  advanced: { bpm: 90, metro: false, countIn: 0, silence: 1.0, readFrac: 0.26,
+              hint: '<b>İleri:</b> tempo 90, sayım yok, 1 sn sessizlikte durur; çaldığın satır biraz daha aşağıda kalır.' }
+};
+const S = Object.assign({}, DEFAULTS, loadJSON(SKEY, {}));
+S.follow = false;                       // beta özellik her açılışta kapalı başlar
+function loadJSON(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch (e) { return fallback; } }
+function saveSettings() { try { localStorage.setItem(SKEY, JSON.stringify(S)); } catch (e) {} }
+let songKey = '';
+function saveSong() {
+  if (!songKey) return;
+  try {
+    const all = loadJSON(SONGS_KEY, {});
+    all[songKey] = { bpm: S.bpm, beats: S.beats, t: Date.now() };
+    const keys = Object.keys(all).sort((a, b) => all[b].t - all[a].t).slice(0, 60);
+    const trimmed = {}; keys.forEach(k => trimmed[k] = all[k]);
+    localStorage.setItem(SONGS_KEY, JSON.stringify(trimmed));
+  } catch (e) {}
+}
 
-// ── Mic state ──────────────────────────────────
-let micActive        = false;
-let audioCtx         = null;
-let analyserNode     = null;
-let micStream        = null;
-let silenceDuration  = 0;
-let micIntervalId    = null;
-let sensitivityThresh = 8;
+/* ════════════════════════════════════════════════════════════
+   DOM
+   ════════════════════════════════════════════════════════════ */
+const uploadScreen = $('uploadScreen'), viewerScreen = $('viewerScreen');
+const dropZone = $('dropZone'), fileInput = $('fileInput'), fileNameEl = $('fileName');
+const scroller = $('pdfScroller'), posInfo = $('posInfo'), beatDotsEl = $('beatDots');
+const micBtn = $('micBtn'), micDot = $('micDot'), micStatusText = $('micStatusText');
+const playBtn = $('playBtn'), rewindBtn = $('rewindBtn'), skipBtn = $('skipBtn');
+const bpmInput = $('bpmInput'), metroBtn = $('metroBtn'), tapBtn = $('tapBtn');
+const settingsEl = $('settings'), settingsBtn = $('settingsBtn');
+const silenceBarFill = $('silenceBarFill'), countInEl = $('countIn');
+const levelFill = $('levelFill'), levelThr = $('levelThr');
 
-const SILENCE_DELAY = 1.5; // seconds until auto-pause
+/* ════════════════════════════════════════════════════════════
+   Oynatma durumu (tek ana saat: ST.beat = şarkıdaki konum, vuruş cinsinden)
+   ════════════════════════════════════════════════════════════ */
+const ST = {
+  running: false, manualPaused: false, autoPaused: false,
+  beat: 0,          // şarkı konumu (vuruş). Sayım sırasında negatif olabilir
+  ci: null,         // sayımın biteceği vuruş (yoksa null)
+  last: 0,          // saatin son ilerletildiği performance.now()
+  rate: 1,          // dinleyerek takip çarpanı
+  nextClick: 0,     // sıradaki metronom vuruşu
+  scrollPx: 0       // sabit hız modunda konum
+};
+const inCountIn   = () => ST.running && ST.ci !== null && ST.beat < ST.ci - 1e-9;
+const isMoving    = () => ST.running && !ST.manualPaused && !(ST.autoPaused && !inCountIn());
+const displayBeat = () => (ST.ci !== null && ST.beat < ST.ci) ? ST.ci : ST.beat;
 
-// ── Upload ─────────────────────────────────────
-dropZone.addEventListener('click', () => fileInput.click());
+/* ════════════════════════════════════════════════════════════
+   Nota modeli
+   ════════════════════════════════════════════════════════════ */
+const score = { ok: false, systems: [], measures: [], onsets: [], M: 0, header: null };
+let pdfDoc = null, builtW = 0, buildToken = 0;
 
-fileInput.addEventListener('change', e => {
-  if (e.target.files[0]) loadPDF(e.target.files[0]);
-});
+/* ════════════════════════════════════════════════════════════
+   1) PDF ANALİZİ — satırları (system), ölçü çizgilerini, nota sütunlarını bul
+   ════════════════════════════════════════════════════════════ */
+const INK_LIM = 3 * 195;
+function inkAt(d, W, x, y) { const i = (y * W + x) << 2; return d[i + 3] > 100 && (d[i] + d[i + 1] + d[i + 2]) < INK_LIM; }
 
-dropZone.addEventListener('dragover', e => {
-  e.preventDefault();
-  dropZone.classList.add('drag-over');
-});
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-dropZone.addEventListener('drop', e => {
-  e.preventDefault();
-  dropZone.classList.remove('drag-over');
-  const file = e.dataTransfer.files[0];
-  if (file && file.type === 'application/pdf') loadPDF(file);
-});
+/* Dolu (ana çizgi) satırlarını bulur; porte (staff) gruplarını döndürür */
+function findStaves(d, W, H) {
+  const rowInk = new Int32Array(H);
+  let maxRow = 0;
+  for (let y = 0; y < H; y++) {
+    let c = 0, i = (y * W) << 2;
+    for (let x = 0; x < W; x++, i += 4) if (d[i + 3] > 100 && (d[i] + d[i + 1] + d[i + 2]) < INK_LIM) c++;
+    rowInk[y] = c;
+    if (c > maxRow) maxRow = c;
+  }
+  const out = { rowInk, staves: [] };
+  if (maxRow < 0.2 * W) return out;
 
-loadNewBtn.addEventListener('click', () => {
-  stopScrollEngine();
-  stopMic();
-  viewerScreen.style.display = 'none';
-  uploadScreen.style.display = 'flex';
-  pdfScroller.innerHTML = '<div id="loadingMsg">PDF yükleniyor…</div>';
-  fileInput.value = '';
-  document.getElementById('keyHint').style.display = 'none';
-});
+  const thr = Math.max(0.2 * W, 0.62 * maxRow);
+  let runs = [];
+  for (let y = 0; y < H;) {
+    if (rowInk[y] >= thr) { const y0 = y; while (y < H && rowInk[y] >= thr) y++; runs.push({ y0, y1: y - 1 }); }
+    else y++;
+  }
+  const merged = [];
+  for (const r of runs) {
+    const p = merged[merged.length - 1];
+    if (p && r.y0 - p.y1 <= 2) p.y1 = r.y1; else merged.push({ ...r });
+  }
+  const maxTh = Math.max(4, 0.012 * W);
+  let lines = merged.filter(r => r.y1 - r.y0 + 1 <= maxTh).map(r => ({ yc: (r.y0 + r.y1) / 2, th: r.y1 - r.y0 + 1 }));
+  if (lines.length < 4) return out;
+  // porte çizgileri incedir ve hepsi aynı kalınlıktadır; belirgin kalın çizgiler (kiriş/beam) elenir
+  const ths = lines.map(l => l.th).sort((a, b) => a - b), medTh = ths[Math.floor(ths.length / 2)];
+  lines = lines.filter(l => l.th <= 2.2 * medTh + 1.5);
+  if (lines.length < 4) return out;
 
-// ── PDF Loading ────────────────────────────────
-async function loadPDF(file) {
-  uploadScreen.style.display = 'none';
-  viewerScreen.style.display = 'flex';
-  document.getElementById('keyHint').style.display = 'block';
-  fileNameEl.textContent = file.name;
-  pdfScroller.innerHTML = '<div style="margin-top:60px;color:#4b5563;">Sayfalar yükleniyor…</div>';
+  // her çizginin yatay uzantısı
+  const w = Math.max(6, Math.round(0.006 * W));
+  for (const ln of lines) {
+    const y = Math.round(ln.yc);
+    const pre = new Int32Array(W + 1);
+    for (let x = 0; x < W; x++) pre[x + 1] = pre[x] + (inkAt(d, W, x, y) ? 1 : 0);
+    let x0 = -1, x1 = -1;
+    for (let x = 0; x + w <= W; x++) if (pre[x + w] - pre[x] >= 0.85 * w) { x0 = x; break; }
+    for (let x = W - w; x >= 0; x--) if (pre[x + w] - pre[x] >= 0.85 * w) { x1 = x + w - 1; break; }
+    ln.x0 = x0; ln.x1 = x1;
+  }
 
-  const buffer = await file.arrayBuffer();
-  const pdf    = await pdfjsLib.getDocument({ data: buffer }).promise;
+  // Porte = eşit aralıklı 4–6 çizgi. Aralığı düzenli olan ardışık çizgileri grupla
+  // (araya giren kiriş/beam gibi düzensiz çizgiler böylece elenir)
+  const diffs = [];
+  for (let i = 0; i < lines.length - 1; i++) diffs.push(lines[i + 1].yc - lines[i].yc);
+  const median = arr => { const s = arr.slice().sort((a, b) => a - b); return s[Math.floor(s.length / 2)]; };
+  const groups = [];
+  let cur = [0];
+  for (let i = 0; i < diffs.length; i++) {
+    if (cur.length === 1) { cur.push(i + 1); continue; }
+    const runDiffs = [];
+    for (let j = 0; j < cur.length - 1; j++) runDiffs.push(lines[cur[j] + 1].yc - lines[cur[j]].yc);
+    const ref = median(runDiffs);
+    if (Math.abs(diffs[i] - ref) <= 0.22 * ref) cur.push(i + 1);
+    else { groups.push(cur); cur = [i, i + 1]; }
+  }
+  groups.push(cur);
 
-  pdfScroller.innerHTML = '';
+  for (const idxs of groups) {
+    if (idxs.length < 4 || idxs.length > 6) continue;
+    const g = idxs.map(k => lines[k]);
+    const xs0 = g.map(l => l.x0).filter(v => v >= 0), xs1 = g.map(l => l.x1).filter(v => v >= 0);
+    if (!xs0.length) continue;
+    const top = g[0].yc, bot = g[g.length - 1].yc;
+    out.staves.push({ lines: g, n: g.length, top, bot, spacing: (bot - top) / (g.length - 1), x0: median(xs0), x1: median(xs1) });
+  }
+  return out;
+}
 
-  for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-    const page = await pdf.getPage(pageNum);
+/* 1. geçiş: sayfanın nota (porte) yatay genişliği — kenar boşluklarını kırpmak için */
+function pageStaffExtent(canvas) {
+  const W = canvas.width, H = canvas.height;
+  const d = canvas.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, W, H).data;
+  const F = findStaves(d, W, H);
+  if (!F.staves.length) return null;
+  return [Math.min(...F.staves.map(s => s.x0)), Math.max(...F.staves.map(s => s.x1))];
+}
 
-    // Scale to fit the scroller width
-    const availW   = pdfScroller.clientWidth - 32;
-    const scale1VP = page.getViewport({ scale: 1 });
-    const scale    = availW / scale1VP.width;
-    const viewport = page.getViewport({ scale });
+/* Porte içinde dikten dik uzanan (ölçü çizgisi) sütunlar */
+function barCols(d, W, st) {
+  const yA = Math.round(st.top) + 2, yB = Math.round(st.bot) - 2, n = yB - yA + 1;
+  const cols = new Uint8Array(W);
+  const xl = Math.max(0, Math.floor(st.x0 - 0.03 * W)), xr = Math.min(W - 1, Math.ceil(st.x1 + 0.03 * W));
+  const maxMiss = n * 0.1;
+  for (let x = xl; x <= xr; x++) {
+    let miss = 0;
+    for (let y = yA; y <= yB; y++) { if (!inkAt(d, W, x, y) && ++miss > maxMiss) break; }
+    if (miss <= maxMiss) cols[x] = 1;
+  }
+  return cols;
+}
+function clusterCols(cols, x0, x1, gap) {
+  const out = []; let s = -1, last = -1;
+  for (let x = x0; x <= x1; x++) {
+    if (cols[x]) { if (s < 0) s = x; last = x; }
+    else if (s >= 0 && x - last > gap) { out.push({ c: (s + last) / 2, w: last - s + 1 }); s = -1; }
+  }
+  if (s >= 0) out.push({ c: (s + last) / 2, w: last - s + 1 });
+  return out;
+}
 
-    const dpr    = window.devicePixelRatio || 1;
-    const canvas = document.createElement('canvas');
-    const ctx    = canvas.getContext('2d');
+/* Tab portesinde nota (fret numarası) sütunları → her ölçü için 0..1 zaman oranları */
+function detectOnsets(d, W, st, bounds) {
+  const sp = st.spacing;
+  const yA = Math.round(st.top - 0.55 * sp), yB = Math.round(st.bot + 0.55 * sp);
+  const isLine = new Uint8Array(yB - yA + 1);
+  for (const ln of st.lines) {
+    const h = Math.ceil(ln.th / 2) + 1;
+    for (let y = Math.round(ln.yc) - h; y <= Math.round(ln.yc) + h; y++) if (y >= yA && y <= yB) isLine[y - yA] = 1;
+  }
+  const staffW = bounds[bounds.length - 1] - bounds[0];
+  const result = [];
+  for (let k = 0; k < bounds.length - 1; k++) {
+    const xa = bounds[k], xb = bounds[k + 1];
+    const margin = Math.max(4, Math.round(0.45 * sp));
+    let xs = Math.round(xa + margin);
+    const xe = Math.round(xb - margin);
+    const clef = k === 0 ? 0.06 * staffW : 0;           // satır başındaki TAB/anahtar bölgesi
+    xs = Math.max(xs, Math.round(xa + clef));
+    if (xe - xs < 4) { result.push([]); continue; }
+    const cnt = new Int16Array(xe - xs + 1);
+    for (let x = xs; x <= xe; x++) {
+      let c = 0;
+      for (let y = yA; y <= yB; y++) if (!isLine[y - yA] && inkAt(d, W, x, y)) c++;
+      cnt[x - xs] = c;
+    }
+    const gapMerge = Math.max(2, Math.round(0.3 * sp));
+    const runs = []; let rs = -1, last = -1;
+    for (let i = 0; i < cnt.length; i++) {
+      if (cnt[i] >= 1) { if (rs < 0) rs = i; last = i; }
+      else if (rs >= 0 && i - last > gapMerge) { runs.push([rs, last]); rs = -1; }
+    }
+    if (rs >= 0) runs.push([rs, last]);
+    const xsOut = [];
+    for (const [a, b] of runs) {
+      const wd = b - a + 1;
+      if (wd < 0.25 * sp) continue;
+      const n = Math.max(1, Math.round(wd / (1.7 * sp)));
+      for (let j = 0; j < n; j++) xsOut.push(xs + a + (j + 0.5) * wd / n);
+    }
+    const x0eff = xa + clef + 0.8 * sp, x1eff = xb - 0.8 * sp;
+    const span = Math.max(1, x1eff - x0eff);
+    result.push(xsOut.map(x => clamp((x - x0eff) / span, 0, 0.98)));
+  }
+  return result;
+}
 
-    canvas.width        = Math.floor(viewport.width  * dpr);
-    canvas.height       = Math.floor(viewport.height * dpr);
-    canvas.style.width  = Math.floor(viewport.width)  + 'px';
-    canvas.style.height = Math.floor(viewport.height) + 'px';
+/* Bir sayfayı analiz et: satırlar, ölçü çizgileri, kesim noktaları */
+function analyzePage(canvas, pageIdx) {
+  const W = canvas.width, H = canvas.height;
+  const d = canvas.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, W, H).data;
+  const F = findStaves(d, W, H);
+  const rowInk = F.rowInk;
+  const tol = Math.floor(0.0012 * W);
+  const blank = y => rowInk[y] <= tol;
 
+  let firstInk = 0; while (firstInk < H && blank(firstInk)) firstInk++;
+  let lastInk = H - 1; while (lastInk > firstInk && blank(lastInk)) lastInk--;
+  const res = { W, H, firstInk, lastInk, systems: [], pieces: [] };
+  if (firstInk >= lastInk) return res;
+
+  // portelerden satır (system) kur: 5 çizgili nota + 6 çizgili tab = bir satır
+  const staves = F.staves, list = [];
+  for (let i = 0; i < staves.length;) {
+    const a = staves[i], b = staves[i + 1];
+    if (a.n === 5 && b && b.n === 6 && (b.top - a.bot) < 5 * (a.bot - a.top)) { list.push({ std: a, tab: b, main: b, top: a.top, bot: b.bot }); i += 2; }
+    else { list.push({ std: a.n === 5 ? a : null, tab: a.n === 6 ? a : null, main: a, top: a.top, bot: a.bot }); i++; }
+  }
+
+  for (const s of list) {
+    const m = s.main;
+    let cols = barCols(d, W, m);
+    if (s.std && s.tab) {
+      const cs = barCols(d, W, s.std), both = new Uint8Array(W);
+      for (let x = 2; x < W - 2; x++) if (cols[x] && (cs[x] || cs[x - 1] || cs[x + 1] || cs[x - 2] || cs[x + 2])) both[x] = 1;
+      cols = both;
+    }
+    const xl = Math.max(0, Math.floor(m.x0 - 0.03 * W)), xr = Math.min(W - 1, Math.ceil(m.x1 + 0.03 * W));
+    const clusters = clusterCols(cols, xl, xr, Math.max(4, Math.round(0.008 * W)));
+    let L = m.x0, R = m.x1;
+    const nearest = (x, tolPx) => { let b = null; for (const c of clusters) if (Math.abs(c.c - x) <= tolPx && (!b || Math.abs(c.c - x) < Math.abs(b.c - x))) b = c; return b; };
+    const cl = nearest(L, 0.02 * W); if (cl) L = cl.c;
+    const cr = nearest(R, 0.02 * W); if (cr) R = cr.c;
+    const minW = 0.03 * (R - L);
+    const inner = clusters.map(c => c.c).filter(c => c > L + minW && c < R - minW);
+    const bounds = [L, ...inner, R];
+    s.bounds = bounds;
+    s.uncertain = bounds.length < 3;       // hiç iç ölçü çizgisi bulunamadı
+    s.onsets = (m.n === 6) ? detectOnsets(d, W, m, bounds) : null;
+    s.spacing = m.spacing;
+  }
+
+  // kesim noktaları
+  const bestBlankRun = (ya, yb) => {
+    let best = null;
+    for (let y = ya; y <= yb;) {
+      if (blank(y)) { const y0 = y; while (y <= yb && blank(y)) y++; const len = y - y0; if (!best || len > best.len) best = { center: Math.round((y0 + y - 1) / 2), len }; }
+      else y++;
+    }
+    return best;
+  };
+  const cuts = [], gapLens = [];
+  for (let i = 0; i < list.length - 1; i++) {
+    const a = list[i], b = list[i + 1];
+    const run = bestBlankRun(Math.round(a.bot) + 2, Math.round(b.top) - 2);
+    if (run && run.len >= 2) { cuts.push(run.center); gapLens.push(run.len); }
+    else cuts.push(Math.round((a.bot + b.top) / 2));
+  }
+
+  if (!list.length) {                         // notasız sayfa: içeriği olduğu gibi al
+    const pad = Math.round(0.01 * H);
+    res.pieces.push({ kind: 'plain', y0: Math.max(0, firstInk - pad), y1: Math.min(H, lastInk + pad + 1) });
+    return res;
+  }
+
+  const spacing = list[0].main.spacing;
+  const maxGap = Math.round(2.2 * spacing);
+  const bridgeUp = y0 => { let last = y0, gap = 0; for (let y = y0 - 1; y >= 0; y--) { if (!blank(y)) { last = y; gap = 0; } else if (++gap >= maxGap) break; } return last; };
+  const bridgeDown = y0 => { let last = y0, gap = 0; for (let y = y0 + 1; y < H; y++) { if (!blank(y)) { last = y; gap = 0; } else if (++gap >= maxGap) break; } return last; };
+  const topStart = bridgeUp(Math.round(list[0].top));
+  const botEnd = bridgeDown(Math.round(list[list.length - 1].bot));
+  const sorted = gapLens.slice().sort((a, b) => a - b);
+  const padEdge = sorted.length ? clamp(Math.round(sorted[Math.floor(sorted.length / 2)] / 2), 4, 120) : Math.round(1.4 * spacing);
+  const topCut = Math.max(0, topStart - padEdge), botCut = Math.min(H, botEnd + padEdge + 1);
+
+  if (pageIdx === 0 && topCut - firstInk > spacing * 1.5) {
+    res.pieces.push({ kind: 'header', y0: Math.max(0, firstInk - padEdge), y1: topCut });
+  }
+  list.forEach((s, i) => {
+    s.y0 = i === 0 ? topCut : cuts[i - 1];
+    s.y1 = i === list.length - 1 ? botCut : cuts[i];
+    res.pieces.push({ kind: 'system', y0: s.y0, y1: s.y1, sys: s });
+  });
+  res.systems = list;
+  return res;
+}
+
+/* ════════════════════════════════════════════════════════════
+   2) Notaları şerit (strip) olarak kur — sayfa boşlukları yok
+   ════════════════════════════════════════════════════════════ */
+const MAX_W = 1200;
+function setLoading(msg) { scroller.innerHTML = '<div class="msg" id="loadingMsg">' + msg + '</div>'; }
+
+async function buildScore() {
+  const token = ++buildToken;
+  score.ok = false;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const cssW = Math.round(Math.min(Math.max(300, scroller.clientWidth - 32), MAX_W));
+  const N = pdfDoc.numPages;
+  const infos = [];
+
+  // 1. geçiş: porte genişliği
+  let fMin = 1, fMax = 0, anyStaff = false;
+  for (let n = 1; n <= N; n++) {
+    const page = await pdfDoc.getPage(n);
+    const v1 = page.getViewport({ scale: 1 });
+    infos.push({ page, w: v1.width, h: v1.height });
+    setLoading('Sayfa ' + n + '/' + N + ' inceleniyor…');
+    const sc = 900 / v1.width;
+    const c = document.createElement('canvas');
+    c.width = 900; c.height = Math.ceil(v1.height * sc);
+    await page.render({ canvasContext: c.getContext('2d', { willReadFrequently: true }), viewport: page.getViewport({ scale: sc }) }).promise;
+    if (token !== buildToken) return;
+    const ext = pageStaffExtent(c);
+    if (ext) { anyStaff = true; fMin = Math.min(fMin, ext[0] / c.width); fMax = Math.max(fMax, ext[1] / c.width); }
+  }
+  const cropL = anyStaff ? Math.max(0, fMin - 0.03) : 0;
+  const cropR = anyStaff ? Math.min(1, fMax + 0.03) : 1;
+  const cropW = Math.max(0.2, cropR - cropL);
+
+  // 2. geçiş: kırpılmış, yüksek çözünürlüklü render + analiz
+  const paper = document.createElement('div');
+  paper.id = 'paper';
+  const maxPaperW = Math.round(cssW);
+  paper.style.maxWidth = maxPaperW + 'px';
+  const systems = [], measures = [], onsets = [];
+  let gOff = 0;
+
+  const addSlice = (src, p, kind) => {
+    const h = p.y1 - p.y0;
+    const c = document.createElement('canvas');
+    c.width = src.width; c.height = h;
+    c.getContext('2d').drawImage(src, 0, p.y0, src.width, h, 0, 0, src.width, h);
+    const el = document.createElement('div');
+    el.className = 'slice ' + kind;
+    el.appendChild(c);
+    paper.appendChild(el);
+    return el;
+  };
+
+  for (let n = 1; n <= N; n++) {
+    setLoading('Sayfa ' + n + '/' + N + ' işleniyor…');
+    const { page, w, h } = infos[n - 1];
+    // ekran küçük olsa bile analiz için en az 1600 px genişlikte çiz (çizgi/ölçü tespiti için)
+    const pxW = Math.max(Math.round(cssW * dpr), 1600);
+    const scale = pxW / (cropW * w);
+    const c = document.createElement('canvas');
+    c.width = pxW;
+    c.height = Math.ceil(h * scale);
+    const ctx = c.getContext('2d', { willReadFrequently: true });
     await page.render({
       canvasContext: ctx,
-      viewport:      page.getViewport({ scale: scale * dpr })
+      viewport: page.getViewport({ scale, offsetX: -cropL * w * scale })
     }).promise;
-
-    pdfScroller.appendChild(canvas);
+    if (token !== buildToken) return;
+    const res = analyzePage(c, n - 1);
+    for (const p of res.pieces) {
+      if (p.y1 - p.y0 < 2) continue;
+      const el = addSlice(c, p, p.kind);
+      if (p.kind !== 'system') continue;
+      const s = p.sys, W = res.W;
+      const i = systems.length;
+      el.dataset.i = i;
+      const nM = s.bounds.length - 1;
+      const sys = { i, el, m0: gOff, n: nM, uncertain: s.uncertain,
+                    bounds: s.bounds.map(x => x / W), onsets: s.onsets ? s.onsets : null, top: 0, h: 0 };
+      systems.push(sys);
+      gOff += nM;
+    }
+    await new Promise(r => setTimeout(r, 0));    // arayüzü canlı tut
   }
+  if (token !== buildToken) return;
 
-  pdfScroller.scrollTop = 0;
-  scrollPos = 0;
-  resetScrollState();
+  // belirsiz satırlar (ölçü çizgisi bulunamadı): diğerlerinin ortalamasını kullan
+  const certain = systems.filter(s => !s.uncertain);
+  const avgN = certain.length ? Math.round(certain.reduce((a, s) => a + s.n, 0) / certain.length) : 4;
+  gOff = 0;
+  for (const s of systems) {
+    if (s.uncertain) {
+      s.n = Math.max(1, avgN);
+      const L = s.bounds[0], R = s.bounds[s.bounds.length - 1];
+      s.bounds = Array.from({ length: s.n + 1 }, (_, k) => L + (R - L) * k / s.n);
+      s.onsets = null;
+    }
+    s.m0 = gOff;
+    for (let k = 0; k < s.n; k++) measures.push({ g: gOff + k, sys: s.i, k, xa: s.bounds[k], xb: s.bounds[k + 1] });
+    if (s.onsets) s.onsets.forEach((arr, k) => arr.forEach(f => onsets.push({ p: gOff + k + f, sys: s.i })));
+    gOff += s.n;
+  }
+  onsets.sort((a, b) => a.p - b.p);
+
+  const spacer = document.createElement('div');
+  spacer.id = 'endSpacer';
+  scroller.innerHTML = '';
+  scroller.appendChild(paper);
+  scroller.appendChild(spacer);
+  // vurgu kutusu
+  const hi = document.createElement('div');
+  hi.id = 'measureHi';
+  hi.innerHTML = '<div id="nowLine"></div>';
+  score.hi = hi; score.nowLine = hi.firstChild;
+
+  score.systems = systems; score.measures = measures; score.onsets = onsets; score.M = measures.length;
+  score.ok = true;
+  builtW = cssW;
+  layoutScore();
+  const haveOnsets = onsets.length > 20;
+  $('followChk').disabled = !haveOnsets;
+  $('followHint').textContent = haveOnsets
+    ? 'Notaları duydukça tempoyu çalışına göre ayarlar. Mikrofon gerektirir; metronomla birlikte kullanılamaz.'
+    : 'Bu PDF’te tab (6 çizgili porte) bulunamadığı için kullanılamıyor.';
+  if (!systems.length) { forcedSpeed = true; S.mode = 'speed'; }
+  else if (forcedSpeed) { forcedSpeed = false; S.mode = 'measure'; }
+  layoutScore();
+  updateDetectInfo();
+  syncUI();
 }
 
-// ── Scroll engine ──────────────────────────────
-function scrollStep(timestamp) {
-  if (lastTs === null) lastTs = timestamp;
-  const dt = Math.min((timestamp - lastTs) / 1000, 0.1); // cap delta at 100 ms
-  lastTs = timestamp;
-
-  if (!manualPaused && !autoPaused) {
-    scrollPos += scrollSpeed * dt;
-    pdfScroller.scrollTop = scrollPos;
+function layoutScore() {
+  if (!score.ok) return;
+  for (const s of score.systems) { s.top = s.el.offsetTop; s.h = s.el.offsetHeight; }
+  const sp = $('endSpacer');
+  if (sp) sp.style.height = (S.mode === 'measure' ? scroller.clientHeight : 0) + 'px';
+  dirty = true;
+}
+function updateDetectInfo() {
+  const el = $('detectInfo');
+  if (!score.systems.length) {
+    el.innerHTML = '<b>Satır/ölçü yapısı algılanamadı</b> (porte çizgisi bulunamadı). Sabit hız modu kullanılıyor; sayfa boşlukları yine de kırpıldı.';
   } else {
-    // Sync accumulator if user manually scrolled while paused
-    scrollPos = pdfScroller.scrollTop;
+    const unc = score.systems.filter(s => s.uncertain).length;
+    el.innerHTML = 'Algılanan: <b>' + score.systems.length + ' satır</b>, <b>' + score.M + ' ölçü</b> (' + score.systems.map(s => s.n).join('+') + ')' +
+      (unc ? ' — ' + unc + ' satırda ölçü çizgisi bulunamadı, tahmin edildi.' : '.') +
+      ' Yanlışsa “Sabit hız” moduna geçebilirsin.';
   }
-
-  rafId = requestAnimationFrame(scrollStep);
 }
 
-function startScrollEngine() {
-  if (!rafId) rafId = requestAnimationFrame(scrollStep);
+/* ════════════════════════════════════════════════════════════
+   3) Konum → kaydırma eşlemesi
+   ════════════════════════════════════════════════════════════ */
+const readOffset = () => scroller.clientHeight * S.readFrac;
+
+function systemRange(sys) {
+  const next = score.systems[sys.i + 1];
+  return [sys.top, next ? next.top : sys.top + sys.h];
+}
+function yForMeasurePos(p) {            // p: ölçü cinsinden (kesirli)
+  const pc = clamp(p, 0, score.M - 1e-6);
+  const g = Math.floor(pc), frac = pc - g;
+  const m = score.measures[g], sys = score.systems[m.sys];
+  const [t0, t1] = systemRange(sys);
+  return { y: t0 + ((m.k + frac) / sys.n) * (t1 - t0), m, frac, sys };
+}
+function beatAtAnchor(y) {
+  const sy = score.systems;
+  if (!sy.length || y <= sy[0].top) return 0;
+  for (let i = 0; i < sy.length; i++) {
+    const [t0, t1] = systemRange(sy[i]);
+    if (y < t1) return (sy[i].m0 + ((y - t0) / Math.max(1, t1 - t0)) * sy[i].n) * S.beats;
+  }
+  return score.M * S.beats - 1e-6;
 }
 
-function stopScrollEngine() {
-  isScrolling  = false;
-  manualPaused = false;
-  if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
-  updatePlayBtn();
+/* ════════════════════════════════════════════════════════════
+   4) Ana saat, kare çizimi
+   ════════════════════════════════════════════════════════════ */
+let viewY = 0, lastSetTop = 0, rafId = null, lastFrame = 0;
+let lastDot = -2, lastHiG = -1, lastInfo = '', dirty = true, forcedSpeed = false;
+
+function advanceClock(now) {
+  const dt = Math.min(Math.max((now - ST.last) / 1000, 0), 0.25);
+  ST.last = now;
+  if (!isMoving()) return dt;
+  const ci = inCountIn();
+  ST.beat += dt * (S.bpm / 60) * (ci ? 1 : ST.rate);
+  if (ST.ci !== null && ST.beat >= ST.ci) { ST.ci = null; lastSound = now; }
+  else if (!ci && S.mode === 'speed') ST.scrollPx += S.speed * dt;
+  return dt;
 }
 
-function resetScrollState() {
-  stopScrollEngine();
+function setScrollY(target, dt, instant) {
+  const max = Math.max(0, scroller.scrollHeight - scroller.clientHeight);
+  target = clamp(target, 0, max);
+  if (instant || Math.abs(target - viewY) > scroller.clientHeight * 1.6) viewY = target;
+  else viewY += (target - viewY) * (1 - Math.exp(-dt / 0.12));
+  if (Math.abs(target - viewY) < 0.05) viewY = target;
+  if (Math.abs(scroller.scrollTop - viewY) > 0.01) {
+    scroller.scrollTop = viewY;
+  }
+  lastSetTop = scroller.scrollTop;
 }
 
-// Play / Pause toggle
-function togglePlay() {
-  if (!isScrolling) {
-    // First press — start
-    isScrolling  = true;
-    manualPaused = false;
-    lastTs       = null;
-    startScrollEngine();
-  } else if (!manualPaused) {
-    manualPaused = true;
+function setHighlight(m, frac, waiting) {
+  const hi = score.hi, el = score.systems[m.sys].el;
+  if (hi.parentNode !== el) el.appendChild(hi);
+  hi.style.display = 'block';
+  if (lastHiG !== m.g) {
+    hi.style.left = (m.xa * 100) + '%';
+    hi.style.width = ((m.xb - m.xa) * 100) + '%';
+    lastHiG = m.g;
+  }
+  hi.classList.toggle('waiting', waiting);
+  const nl = score.nowLine;
+  // satır başındaki anahtar bölgesini atla
+  const x0 = m.k === 0 ? 0.06 * (score.systems[m.sys].bounds[score.systems[m.sys].n] - score.systems[m.sys].bounds[0]) / (m.xb - m.xa) : 0;
+  nl.style.left = (clamp(x0 + frac * (1 - x0), 0, 1) * 100) + '%';
+}
+
+function renderFrame(dt) {
+  if (!score.ok) return;
+  const waiting = ST.running && (ST.manualPaused || (ST.autoPaused && !inCountIn()));
+  let info = '';
+
+  if (S.mode === 'measure' && score.M > 0) {
+    const p = displayBeat() / S.beats;
+    const r = yForMeasurePos(p);
+    if (ST.running || dirty) {
+      setScrollY(r.y - readOffset(), dt, false);
+      if (!ST.running && Math.abs(viewY - clamp(r.y - readOffset(), 0, Math.max(0, scroller.scrollHeight - scroller.clientHeight))) < 0.5) dirty = false;
+    }
+    setHighlight(r.m, r.frac, waiting);
+    info = 'Satır <b>' + (r.sys.i + 1) + '</b>/' + score.systems.length + ' · Ölçü <b>' + (r.m.g + 1) + '</b>/' + score.M;
+    if (ST.running && p >= score.M) finishPlayback();
   } else {
-    manualPaused = false;
+    if (score.hi) score.hi.style.display = 'none';
+    if (ST.running && isMoving() && !inCountIn()) {
+      ST.scrollPx = clamp(ST.scrollPx, 0, scroller.scrollHeight);
+      scroller.scrollTop = ST.scrollPx;
+      lastSetTop = scroller.scrollTop;
+      viewY = lastSetTop;
+      if (ST.scrollPx > 10 && scroller.scrollTop >= scroller.scrollHeight - scroller.clientHeight - 1) finishPlayback();
+    }
+    info = 'Sabit hız · <b>' + S.speed + '</b> px/sn';
   }
-  updatePlayBtn();
+
+  // vuruş noktaları + sayım
+  const live = ST.running && isMoving();
+  const bi = ST.running ? mod(Math.floor(displayBeat() + 1e-6), S.beats) : -1;
+  const dotKey = live ? bi : -1;
+  if (dotKey !== lastDot) {
+    lastDot = dotKey;
+    [...beatDotsEl.children].forEach((d, i) => d.classList.toggle('on', i === dotKey));
+    [...beatDotsEl.children].forEach((d, i) => d.classList.toggle('first', i === 0));
+  }
+  if (inCountIn()) {
+    countInEl.textContent = String(mod(Math.floor(ST.beat + 1e-6), S.beats) + 1);
+    countInEl.classList.add('show');
+  } else countInEl.classList.remove('show');
+
+  if (S.follow && ST.running) info += ' · ♩≈<b>' + Math.round(S.bpm * ST.rate) + '</b>';
+  if (info !== lastInfo) { posInfo.innerHTML = info; lastInfo = info; }
 }
 
+function frame() {
+  const now = performance.now();
+  const dt = Math.min((now - lastFrame) / 1000, 0.1);
+  lastFrame = now;
+  try { advanceClock(now); renderFrame(dt); } catch (e) { console.error(e); }
+  rafId = requestAnimationFrame(frame);      // bir hata döngüyü öldürmesin
+}
+function startFrameLoop() { if (!rafId) { lastFrame = performance.now(); ST.last = lastFrame; rafId = requestAnimationFrame(frame); } }
+function stopFrameLoop() { if (rafId) { cancelAnimationFrame(rafId); rafId = null; } }
+
+/* Kullanıcı kaydırırsa konum buna göre güncellenir */
+scroller.addEventListener('scroll', () => {
+  if (!score.ok) return;
+  if (Math.abs(scroller.scrollTop - lastSetTop) <= 2) return;
+  viewY = scroller.scrollTop; lastSetTop = scroller.scrollTop;
+  if (S.mode === 'measure' && score.M > 0) {
+    ST.beat = beatAtAnchor(scroller.scrollTop + readOffset());
+    ST.ci = null; resyncClicks(); cancelClicks(); followResync();
+    lastSound = performance.now();
+  } else {
+    ST.scrollPx = scroller.scrollTop;
+  }
+});
+
+/* ════════════════════════════════════════════════════════════
+   5) Oynatma kontrolü
+   ════════════════════════════════════════════════════════════ */
 function updatePlayBtn() {
-  const btn = playBtn;
-  btn.classList.remove('stopped', 'paused-manual');
+  playBtn.classList.remove('stopped', 'paused-manual');
+  if (!ST.running) { playBtn.textContent = '▶ Başlat'; playBtn.classList.add('stopped'); }
+  else if (ST.manualPaused) { playBtn.textContent = '▶ Devam'; playBtn.classList.add('paused-manual'); }
+  else playBtn.textContent = '⏸ Duraklat';
+}
 
-  if (!isScrolling) {
-    btn.textContent = '▶ Başlat';
-    btn.classList.add('stopped');
-  } else if (manualPaused) {
-    btn.textContent = '▶ Devam';
-    btn.classList.add('paused-manual');
-  } else {
-    btn.textContent = '⏸ Duraklat';
-  }
+function seekToBeat(b) {
+  if (!score.ok || !score.M) return;
+  ST.beat = clamp(b, 0, score.M * S.beats - 1e-6);
+  ST.ci = null; dirty = true;
+  cancelClicks(); resyncClicks(); followResync();
+  lastSound = performance.now();
+}
+function seekToMeasure(g) { seekToBeat(clamp(g, 0, score.M - 1) * S.beats); }
+function currentSystemIndex() {
+  const g = clamp(Math.floor(displayBeat() / S.beats), 0, score.M - 1);
+  return score.measures[g] ? score.measures[g].sys : 0;
+}
+function seekToSystem(i) {
+  i = clamp(i, 0, score.systems.length - 1);
+  seekToMeasure(score.systems[i].m0);
+}
+
+function startPlayback() {
+  if (!score.ok) return;
+  ensureAudio();
+  if (S.mode === 'measure' && score.M && ST.beat / S.beats >= score.M - 0.01) ST.beat = 0;
+  const ci = S.countIn * S.beats;
+  let b0 = ST.beat;
+  if (S.mode === 'measure') { if (ci > 0) b0 = Math.floor(b0 / S.beats + 1e-9) * S.beats; }
+  else { b0 = 0; ST.scrollPx = scroller.scrollTop; }
+  ST.running = true; ST.manualPaused = false; ST.autoPaused = false; ST.rate = 1;
+  if (ci > 0) { ST.beat = b0 - ci; ST.ci = b0; } else { ST.beat = b0; ST.ci = null; }
+  ST.last = performance.now();
+  lastSound = ST.last;
+  cancelClicks(); resyncClicks(); followResync();
+  updatePlayBtn();
+  schedulerTick();
+}
+function stopPlayback() {
+  if (S.follow && ST.running && ST.rate !== 1) setBpm(S.bpm * ST.rate, false);   // öğrenilen tempo kalıcı olsun
+  ST.running = false; ST.manualPaused = false; ST.autoPaused = false; ST.ci = null; ST.rate = 1;
+  cancelClicks();
+  silenceBarFill.style.width = '0%';
+  updatePlayBtn();
+}
+function finishPlayback() {
+  stopPlayback();
+  posInfo.innerHTML = '<b>Bitti ✓</b>'; lastInfo = '';
+}
+function togglePlay() {
+  if (!score.ok) return;
+  if (!ST.running) startPlayback();
+  else if (!ST.manualPaused) { ST.manualPaused = true; cancelClicks(); }
+  else { ST.manualPaused = false; ST.last = performance.now(); lastSound = ST.last; resyncClicks(); followResync(); }
+  updatePlayBtn();
+}
+function rewind() {
+  stopPlayback();
+  ST.beat = 0; ST.scrollPx = 0; dirty = true; lastHiG = -1;
+  if (S.mode === 'speed') { scroller.scrollTop = 0; lastSetTop = scroller.scrollTop; viewY = 0; }
 }
 
 playBtn.addEventListener('click', togglePlay);
-rewindBtn.addEventListener('click', () => { pdfScroller.scrollTop = 0; scrollPos = 0; });
-skipBtn.addEventListener('click',   () => { pdfScroller.scrollTop += 400; });
-
-function changeSpeed(delta) {
-  scrollSpeed = Math.max(5, Math.min(400, scrollSpeed + delta));
-  speedValEl.textContent = scrollSpeed + ' px/s';
-}
-speedDownBtn.addEventListener('click', () => changeSpeed(-1));
-speedUpBtn.addEventListener('click',   () => changeSpeed(1));
-
-// ── Microphone ─────────────────────────────────
-micBtn.addEventListener('click', () => {
-  micActive ? stopMic() : startMic();
+rewindBtn.addEventListener('click', rewind);
+skipBtn.addEventListener('click', () => {
+  if (S.mode === 'measure' && score.M) seekToSystem(currentSystemIndex() + 1);
+  else { scroller.scrollTop += 400; }
 });
+
+/* nota üzerine tıkla → o ölçüye atla */
+scroller.addEventListener('click', e => {
+  if (S.mode !== 'measure' || !score.ok) return;
+  const el = e.target.closest ? e.target.closest('.slice.system') : null;
+  if (!el) return;
+  const sys = score.systems[+el.dataset.i];
+  const r = el.getBoundingClientRect();
+  const fx = (e.clientX - r.left) / r.width;
+  let k = 0;
+  for (let i = 0; i < sys.n; i++) if (fx >= sys.bounds[i]) k = i;
+  seekToMeasure(sys.m0 + k);
+});
+
+/* ════════════════════════════════════════════════════════════
+   6) Tempo kontrolleri
+   ════════════════════════════════════════════════════════════ */
+function setBpm(v, fromUser) {
+  v = clamp(Math.round(v), 30, 220);
+  S.bpm = v;
+  bpmInput.value = v;
+  if (fromUser) { S.level = null; syncLevelButtons(); }
+  saveSettings(); saveSong();
+}
+$('bpmDownBtn').addEventListener('click', () => setBpm(S.bpm - 1, true));
+$('bpmUpBtn').addEventListener('click',   () => setBpm(S.bpm + 1, true));
+bpmInput.addEventListener('change', () => setBpm(parseFloat(bpmInput.value) || S.bpm, true));
+bpmInput.addEventListener('keydown', e => { if (e.key === 'Enter') { bpmInput.blur(); } e.stopPropagation(); });
+
+let taps = [];
+tapBtn.addEventListener('click', () => {
+  const now = performance.now();
+  if (taps.length && now - taps[taps.length - 1] > 2500) taps = [];
+  taps.push(now);
+  if (taps.length > 8) taps.shift();
+  if (taps.length >= 2) setBpm(60000 / ((taps[taps.length - 1] - taps[0]) / (taps.length - 1)), true);
+});
+
+function setBeats(n) {
+  const old = S.beats;
+  if (n === old) return;
+  if (score.ok) ST.beat = ST.beat / old * n;
+  if (ST.ci !== null) ST.ci = ST.ci / old * n;
+  S.beats = n;
+  saveSettings(); saveSong();
+  cancelClicks(); resyncClicks();
+  buildDots(); syncUI();
+}
+
+function applyLevel(name) {
+  const L = LEVELS[name];
+  S.level = name;
+  S.bpm = L.bpm; S.metro = L.metro; S.countIn = L.countIn; S.silence = L.silence; S.readFrac = L.readFrac; dirty = true;
+  if (S.metro && S.follow) setFollow(false);
+  saveSettings(); saveSong(); syncUI();
+}
+
+function buildDots() {
+  beatDotsEl.innerHTML = '';
+  for (let i = 0; i < S.beats; i++) { const d = document.createElement('div'); d.className = 'dot' + (i === 0 ? ' first' : ''); beatDotsEl.appendChild(d); }
+  lastDot = -2;
+}
+
+/* ════════════════════════════════════════════════════════════
+   7) Metronom (Web Audio, ileriye dönük zamanlama)
+   ════════════════════════════════════════════════════════════ */
+let actx = null, masterGain = null, pending = [], clickTimes = [];
+
+function ensureAudio() {
+  if (!actx) {
+    actx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = actx.createGain();
+    masterGain.gain.value = S.vol / 100;
+    masterGain.connect(actx.destination);
+  }
+  if (actx.state === 'suspended') actx.resume();
+}
+function playClick(when, accent) {
+  const o = actx.createOscillator(), g = actx.createGain();
+  o.type = 'triangle';
+  o.frequency.value = accent ? 1800 : 1200;
+  g.gain.setValueAtTime(0.0001, when);
+  g.gain.linearRampToValueAtTime(accent ? 1 : 0.7, when + 0.002);
+  g.gain.exponentialRampToValueAtTime(0.0008, when + 0.07);
+  o.connect(g); g.connect(masterGain);
+  o.start(when); o.stop(when + 0.09);
+  const item = { o, g, when };
+  pending.push(item);
+  clickTimes.push(when);
+  o.onended = () => { const i = pending.indexOf(item); if (i >= 0) pending.splice(i, 1); try { g.disconnect(); } catch (e) {} };
+  if (clickTimes.length > 12) clickTimes.shift();
+}
+function cancelClicks() {
+  if (!actx) { pending = []; return; }
+  const now = actx.currentTime;
+  for (const it of pending) if (it.when > now) { try { it.g.disconnect(); it.o.stop(); } catch (e) {} }
+  pending = pending.filter(it => it.when <= now);
+}
+function resyncClicks() { ST.nextClick = Math.ceil(ST.beat - 1e-6); }
+
+function schedulerTick() {
+  if (!ST.running || !actx) return;
+  advanceClock(performance.now());
+  if (!isMoving()) return;
+  const eff = (S.bpm / 60) * (inCountIn() ? 1 : ST.rate);
+  const aheadBeats = 0.12 * eff;
+  while (ST.nextClick < ST.beat + aheadBeats) {
+    const k = ST.nextClick;
+    const inCI = ST.ci !== null && k < ST.ci - 1e-9;
+    const want = inCI ? S.countIn > 0 : (S.metro && !S.follow);
+    if (want) {
+      const delay = Math.max(0, (k - ST.beat) / eff);
+      playClick(actx.currentTime + delay, mod(k, S.beats) === 0);
+    }
+    ST.nextClick++;
+  }
+}
+setInterval(schedulerTick, 25);
+
+metroBtn.addEventListener('click', () => {
+  S.metro = !S.metro;
+  if (S.metro && S.follow) setFollow(false);
+  if (S.metro) ensureAudio();
+  saveSettings(); syncUI();
+});
+
+/* ════════════════════════════════════════════════════════════
+   8) Mikrofon: sessizlikte durdur, ses gelince devam et
+   ════════════════════════════════════════════════════════════ */
+let micActive = false, analyserNode = null, micStream = null, micSource = null, micIntervalId = null;
+let lastSound = 0;
+
+micBtn.addEventListener('click', () => { micActive ? stopMic() : startMic(); });
 
 async function startMic() {
   try {
-    if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (audioCtx.state === 'suspended') await audioCtx.resume();
-
+    ensureAudio();
     micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-    const source = audioCtx.createMediaStreamSource(micStream);
-    analyserNode = audioCtx.createAnalyser();
+    micSource = actx.createMediaStreamSource(micStream);
+    analyserNode = actx.createAnalyser();
     analyserNode.fftSize = 2048;
-    source.connect(analyserNode);
-
+    micSource.connect(analyserNode);
     micActive = true;
+    lastSound = performance.now();
     micBtn.textContent = '🎤 Mik Kapat';
     micBtn.classList.remove('off');
-
-    startMicLoop();
+    if (micIntervalId) clearInterval(micIntervalId);
+    micIntervalId = setInterval(micTick, 50);
+    if (S.follow) followStart();
   } catch (err) {
     alert('Mikrofon erişimi sağlanamadı:\n' + err.message);
+    if (S.follow) setFollow(false);
   }
 }
-
 function stopMic() {
+  followStop();
   micActive = false;
-  clearInterval(micIntervalId);
-  micIntervalId = null;
-
-  if (micStream) {
-    micStream.getTracks().forEach(t => t.stop());
-    micStream = null;
-  }
+  clearInterval(micIntervalId); micIntervalId = null;
+  if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+  if (micSource) { try { micSource.disconnect(); } catch (e) {} micSource = null; }
   if (analyserNode) { analyserNode.disconnect(); analyserNode = null; }
-
-  autoPaused        = false;
-  silenceDuration   = 0;
+  if (ST.autoPaused) { ST.autoPaused = false; ST.last = performance.now(); resyncClicks(); }
   silenceBarFill.style.width = '0%';
-
+  levelFill.style.width = '0%';
   micBtn.textContent = '🎤 Mik Aç';
   micBtn.classList.add('off');
-  micDot.className   = 'mic-dot';
+  micDot.className = 'mic-dot';
   micStatusText.textContent = 'Mik kapalı';
+  if (S.follow) setFollow(false);
 }
 
+const rmsBuf = { arr: null };
 function computeRMS() {
-  const buf = new Uint8Array(analyserNode.fftSize);
+  if (!rmsBuf.arr || rmsBuf.arr.length !== analyserNode.fftSize) rmsBuf.arr = new Uint8Array(analyserNode.fftSize);
+  const buf = rmsBuf.arr;
   analyserNode.getByteTimeDomainData(buf);
   let sum = 0;
-  for (let i = 0; i < buf.length; i++) {
-    const v = buf[i] - 128;
-    sum += v * v;
-  }
+  for (let i = 0; i < buf.length; i++) { const v = buf[i] - 128; sum += v * v; }
   return Math.sqrt(sum / buf.length);
 }
-
-function startMicLoop() {
-  if (micIntervalId) clearInterval(micIntervalId);
-
-  micIntervalId = setInterval(() => {
-    if (!micActive || !analyserNode) return;
-
-    const rms = computeRMS();
-
-    if (rms >= sensitivityThresh) {
-      // Sound detected → resume if auto-paused
-      silenceDuration = 0;
-      if (autoPaused) {
-        autoPaused = false;
-      }
-      micDot.className      = 'mic-dot listening';
-      micStatusText.textContent = 'Ses algılandı';
-      silenceBarFill.style.width = '0%';
-
-    } else {
-      // Silence
-      silenceDuration += 0.05; // 50 ms tick
-
-      const progress = Math.min(silenceDuration / SILENCE_DELAY, 1);
-      silenceBarFill.style.width = (progress * 100) + '%';
-
-      if (silenceDuration >= SILENCE_DELAY) {
-        if (!autoPaused) autoPaused = true;
-        micDot.className           = 'mic-dot silent';
-        micStatusText.textContent  = 'Sessizlik — durakladı';
-      } else {
-        micDot.className           = 'mic-dot listening';
-        micStatusText.textContent  = 'Ses algılandı';
-      }
-    }
-  }, 50);
+/* metronom tıkları mikrofonu kandırmasın */
+function blankedByClick() {
+  if (!actx || !clickTimes.length) return false;
+  const t = actx.currentTime;
+  for (const c of clickTimes) if (t >= c - 0.01 && t <= c + 0.10) return true;
+  return false;
 }
 
-sensitivitySlider.addEventListener('input', e => {
-  sensitivityThresh = parseInt(e.target.value, 10);
+function micTick() {
+  if (!micActive || !analyserNode) return;
+  const now = performance.now();
+  const rms = computeRMS();
+  levelFill.style.width = (clamp(rms / 40, 0, 1) * 100) + '%';
+  levelFill.style.background = rms >= S.sens ? '#4ade80' : '#6b7280';
+  if (blankedByClick()) return;
+
+  if (inCountIn() || !ST.running) lastSound = now;
+
+  if (rms >= S.sens) {
+    lastSound = now;
+    if (ST.autoPaused) { ST.autoPaused = false; ST.last = now; resyncClicks(); followResync(); }
+    silenceBarFill.style.width = '0%';
+    micDot.className = 'mic-dot listening';
+    micStatusText.textContent = 'Ses algılandı';
+  } else {
+    const silent = (now - lastSound) / 1000;
+    silenceBarFill.style.width = (ST.running ? Math.min(silent / S.silence, 1) * 100 : 0) + '%';
+    if (ST.running && !ST.manualPaused && silent >= S.silence && !ST.autoPaused && !inCountIn()) {
+      ST.autoPaused = true; cancelClicks();
+    }
+    if (ST.autoPaused) { micDot.className = 'mic-dot silent'; micStatusText.textContent = 'Sessizlik — durakladı'; }
+    else { micDot.className = 'mic-dot listening'; micStatusText.textContent = ST.running ? 'Dinliyor' : 'Mik açık'; }
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
+   9) Dinleyerek tempo takibi (beta)
+      Mikrofondan nota başlangıçlarını (onset) sayar, PDF'teki tab
+      sütunlarıyla eşleştirir ve saati çalışına göre yavaş yavaş ayarlar.
+   ════════════════════════════════════════════════════════════ */
+const fol = { an: null, prev: null, buf: null, td: null, timer: null, hist: [], lastOn: 0,
+              seq: -1, prevT: 0, v: [], conv: false,
+              iLo: 2, iHi: 100, count: 0, lost: 0 };
+
+function followStart() {
+  if (fol.timer || !micActive || !actx) return;
+  fol.an = actx.createAnalyser();
+  fol.an.fftSize = 1024;
+  fol.an.smoothingTimeConstant = 0;
+  micSource.connect(fol.an);
+  const bins = fol.an.frequencyBinCount, hz = actx.sampleRate / fol.an.fftSize;
+  fol.iLo = Math.max(1, Math.round(110 / hz)); fol.iHi = Math.min(bins - 1, Math.round(5000 / hz));
+  fol.prev = new Float32Array(bins).fill(-100);
+  fol.buf = new Float32Array(bins);
+  fol.td = new Float32Array(fol.an.fftSize);
+  fol.hist = []; fol.lastOn = 0; fol.count = 0; fol.lost = 0;
+  followResync();
+  fol.timer = setInterval(followTick, 10);
+}
+function followStop() {
+  if (fol.timer) { clearInterval(fol.timer); fol.timer = null; }
+  if (fol.an) { try { micSource && micSource.disconnect(fol.an); } catch (e) {} try { fol.an.disconnect(); } catch (e) {} fol.an = null; }
+}
+function firstOnsetAtOrAfter(p) {
+  const a = score.onsets; let lo = 0, hi = a.length;
+  while (lo < hi) { const mid = (lo + hi) >> 1; if (a[mid].p < p) lo = mid + 1; else hi = mid; }
+  return lo;
+}
+function followResync() {
+  if (!score.ok) return;
+  fol.seq = firstOnsetAtOrAfter(ST.beat / S.beats - 0.12) - 1;
+  fol.prevT = 0; fol.v.length = 0; fol.conv = false;
+}
+function setFollow(on) {
+  if (on && (!score.onsets.length || S.mode !== 'measure')) { on = false; }
+  if (!on && S.follow) {                       // öğrenilen tempoyu kalıcı yap
+    if (ST.rate !== 1) setBpm(S.bpm * ST.rate, false);
+    ST.rate = 1;
+  }
+  S.follow = on;
+  $('followChk').checked = on;
+  if (on) {
+    if (S.metro) { S.metro = false; }
+    if (!micActive) startMic(); else followStart();
+  } else followStop();
+  syncUI();
+}
+$('followChk').addEventListener('change', e => setFollow(e.target.checked));
+
+function followTick() {
+  if (!fol.an || !micActive) return;
+  fol.an.getFloatFrequencyData(fol.buf);
+  let flux = 0;
+  for (let i = fol.iLo; i <= fol.iHi; i++) {
+    const v = Math.max(fol.buf[i], -100), dv = v - fol.prev[i];
+    if (dv > 0) flux += dv;
+    fol.prev[i] = v;
+  }
+  flux /= (fol.iHi - fol.iLo + 1);
+  const h = fol.hist;
+  h.push(flux); if (h.length > 70) h.shift();
+  if (h.length < 20) return;
+  let mean = 0; for (const v of h) mean += v; mean /= h.length;
+  const now = performance.now();
+  const thr = Math.max(3.0, mean * 2.4 + 1.2);
+  // seviye kapısı: çok sessiz bir şeyi nota sayma
+  fol.an.getFloatTimeDomainData(fol.td);
+  let s = 0; for (let i = 0; i < fol.td.length; i++) s += fol.td[i] * fol.td[i];
+  const rmsF = Math.sqrt(s / fol.td.length);
+  if (flux > thr && rmsF > (S.sens / 128) * 0.45 && now - fol.lastOn > 95 && !blankedByClick()) {
+    fol.lastOn = now;
+    onNoteOnset(now);
+  }
+}
+
+/* Her duyulan nota için: 1) ardışık iki nota arasındaki gerçek süre ile PDF'teki
+   sütun mesafesinden "çalan kişinin hızı" örneği çıkar, 2) son örneklerin MEDYANINI al
+   (kaçırılan/fazladan notalar medyanı bozmaz), 3) saati bu hıza yaklaştır,
+   4) hız oturunca konumu en yakın nota sütununa doğru hafifçe düzelt. */
+function onNoteOnset(now) {
+  if (!S.follow || !isMoving() || inCountIn() || !score.onsets.length) return;
+  const A = score.onsets, p = ST.beat / S.beats;
+  const j = fol.seq + 1;
+  if (j >= A.length) return;
+  fol.count++;
+  if (fol.seq >= 0 && fol.prevT && now - fol.prevT < 1200) {
+    const dp = A[j].p - A[fol.seq].p, dt = (now - fol.prevT) / 1000;
+    if (dp > 0 && dp < 0.6) { fol.v.push(dp / dt); if (fol.v.length > 14) fol.v.shift(); }
+  }
+  fol.prevT = now;
+  fol.seq = j;
+  if (Math.abs(A[j].p - p) > 2) {                 // eşleşme tamamen koptu → saate yeniden bağlan
+    fol.lost++; followResync(); return;
+  }
+  if (fol.v.length < 6) return;
+  const sorted = fol.v.slice().sort((x, y) => x - y);
+  const med = sorted[sorted.length >> 1];
+  const target = clamp(med / (S.bpm / 60 / S.beats), 0.5, 1.8);
+  fol.conv = Math.abs(target / ST.rate - 1) < 0.08;
+  ST.rate += 0.2 * (target - ST.rate);
+  if (fol.conv) {
+    let jn = j, best = Math.abs(A[j].p - p);
+    for (let k = Math.max(0, j - 3); k <= Math.min(A.length - 1, j + 3); k++) {
+      const d = Math.abs(A[k].p - p);
+      if (d < best) { best = d; jn = k; }
+    }
+    fol.seq = jn;
+    const e = A[jn].p - p;
+    if (Math.abs(e) < 0.2) ST.beat += 0.2 * e * S.beats;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
+   10) Ayarlar paneli & arayüz senkronu
+   ════════════════════════════════════════════════════════════ */
+function syncLevelButtons() {
+  document.querySelectorAll('#levelSeg button').forEach(b => b.classList.toggle('active', b.dataset.level === S.level));
+  $('levelHint').innerHTML = S.level ? LEVELS[S.level].hint : '<b>Özel ayar:</b> değerleri kendin belirledin. Tempoyu bulmak için “Tap”a çaldığın hızda birkaç kez dokunabilirsin.';
+}
+function syncUI() {
+  bpmInput.value = S.bpm;
+  metroBtn.classList.toggle('on', S.metro && !S.follow);
+  metroBtn.disabled = S.follow;
+  metroBtn.style.opacity = S.follow ? '0.5' : '1';
+  document.querySelectorAll('#beatsSeg button').forEach(b => b.classList.toggle('active', +b.dataset.beats === S.beats));
+  document.querySelectorAll('#countSeg button').forEach(b => b.classList.toggle('active', +b.dataset.count === S.countIn));
+  document.querySelectorAll('#modeSeg button').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === S.mode);
+    if (b.dataset.mode === 'measure') b.disabled = !score.systems.length;
+  });
+  $('speedRow').style.display = S.mode === 'speed' ? 'flex' : 'none';
+  $('speedVal').textContent = S.speed + ' px/s';
+  $('volSlider').value = S.vol;
+  $('sensSlider').value = S.sens;
+  $('silSlider').value = Math.round(S.silence * 10);
+  $('silVal').textContent = S.silence.toFixed(1) + ' sn';
+  $('readSlider').value = Math.round(S.readFrac * 100);
+  $('readVal').textContent = '%' + Math.round(S.readFrac * 100);
+  $('followChk').checked = S.follow;
+  levelThr.style.left = (clamp(S.sens / 40, 0, 1) * 100) + '%';
+  syncLevelButtons();
+  buildDotsIfNeeded();
+}
+function buildDotsIfNeeded() { if (beatDotsEl.children.length !== S.beats) buildDots(); }
+
+settingsBtn.addEventListener('click', e => { e.stopPropagation(); settingsEl.hidden = !settingsEl.hidden; settingsBtn.classList.toggle('toggle', !settingsEl.hidden); settingsBtn.classList.toggle('on', !settingsEl.hidden); });
+document.addEventListener('click', e => {
+  if (!settingsEl.hidden && !settingsEl.contains(e.target) && e.target !== settingsBtn) { settingsEl.hidden = true; settingsBtn.classList.remove('toggle', 'on'); }
 });
 
-// ── Keyboard shortcuts ─────────────────────────
+document.querySelectorAll('#levelSeg button').forEach(b => b.addEventListener('click', () => applyLevel(b.dataset.level)));
+document.querySelectorAll('#beatsSeg button').forEach(b => b.addEventListener('click', () => setBeats(+b.dataset.beats)));
+document.querySelectorAll('#countSeg button').forEach(b => b.addEventListener('click', () => { S.countIn = +b.dataset.count; S.level = null; saveSettings(); syncUI(); }));
+document.querySelectorAll('#modeSeg button').forEach(b => b.addEventListener('click', () => {
+  if (b.disabled) return;
+  const prev = S.mode; S.mode = b.dataset.mode;
+  if (S.mode === 'speed' && S.follow) setFollow(false);
+  if (prev !== S.mode) {
+    if (prev === 'measure') ST.scrollPx = scroller.scrollTop;
+    layoutScore();
+    if (S.mode === 'measure') ST.beat = beatAtAnchor(scroller.scrollTop + readOffset());
+    lastHiG = -1; dirty = true;
+  }
+  saveSettings(); syncUI();
+}));
+$('volSlider').addEventListener('input', e => { S.vol = +e.target.value; if (masterGain) masterGain.gain.value = S.vol / 100; saveSettings(); });
+$('sensSlider').addEventListener('input', e => { S.sens = +e.target.value; levelThr.style.left = (clamp(S.sens / 40, 0, 1) * 100) + '%'; saveSettings(); });
+$('silSlider').addEventListener('input', e => { S.silence = +e.target.value / 10; $('silVal').textContent = S.silence.toFixed(1) + ' sn'; S.level = null; syncLevelButtons(); saveSettings(); });
+$('readSlider').addEventListener('input', e => { S.readFrac = +e.target.value / 100; dirty = true; $('readVal').textContent = '%' + e.target.value; S.level = null; syncLevelButtons(); saveSettings(); });
+$('speedDownBtn').addEventListener('click', () => changeSpeed(-1));
+$('speedUpBtn').addEventListener('click', () => changeSpeed(1));
+function changeSpeed(delta) { S.speed = clamp(S.speed + delta, 5, 400); $('speedVal').textContent = S.speed + ' px/s'; saveSettings(); }
+document.querySelectorAll('input[type=range]').forEach(r => r.addEventListener('pointerup', () => r.blur()));
+document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button'); if (b) b.blur(); });
+
+/* ════════════════════════════════════════════════════════════
+   11) Yükleme
+   ════════════════════════════════════════════════════════════ */
+dropZone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', e => { if (e.target.files[0]) loadPDF(e.target.files[0]); });
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f && f.type === 'application/pdf') loadPDF(f);
+});
+
+$('loadNewBtn').addEventListener('click', () => {
+  stopPlayback(); stopMic(); stopFrameLoop();
+  buildToken++;
+  score.ok = false; pdfDoc = null;
+  viewerScreen.style.display = 'none';
+  uploadScreen.style.display = 'flex';
+  setLoading('PDF yükleniyor…');
+  fileInput.value = '';
+  settingsEl.hidden = true;
+});
+
+async function loadPDF(file) {
+  score.ok = false; buildToken++;
+  stopPlayback();
+  uploadScreen.style.display = 'none';
+  viewerScreen.style.display = 'flex';
+  fileNameEl.textContent = file.name;
+  posInfo.textContent = '…';
+  setLoading('PDF yükleniyor…');
+  songKey = file.name + ':' + file.size;
+  try {
+    const buffer = await file.arrayBuffer();
+    pdfDoc = await pdfjsLib.getDocument({ data: buffer }).promise;
+  } catch (err) {
+    alert('PDF açılamadı:\n' + (err && err.message ? err.message : err));
+    $('loadNewBtn').click();
+    return;
+  }
+  const saved = loadJSON(SONGS_KEY, {})[songKey];
+  if (saved) { S.bpm = saved.bpm || S.bpm; S.beats = saved.beats || S.beats; }
+  try {
+    await buildScore();
+  } catch (err) {
+    console.error(err);
+    alert('Notalar işlenirken hata oluştu:\n' + (err && err.message ? err.message : err));
+    $('loadNewBtn').click();
+    return;
+  }
+  ST.beat = 0; ST.scrollPx = 0; viewY = 0; scroller.scrollTop = 0; lastSetTop = 0; lastHiG = -1;
+  syncUI();
+  startFrameLoop();
+}
+
+/* pencere boyutu değişirse düzeni güncelle; genişlik çok değiştiyse yeniden çiz */
+let resizeTimer = null;
+window.addEventListener('resize', () => {
+  if (!score.ok) return;
+  layoutScore();
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(async () => {
+    const want = Math.round(Math.min(Math.max(300, scroller.clientWidth - 32), MAX_W));
+    if (pdfDoc && Math.abs(want - builtW) / builtW > 0.15) {
+      const beat = ST.beat, y = scroller.scrollTop;
+      const was = ST.running && !ST.manualPaused;
+      if (was) ST.manualPaused = true;
+      await buildScore();
+      ST.beat = beat; lastHiG = -1; viewY = 0;
+      if (S.mode === 'speed') { scroller.scrollTop = y; ST.scrollPx = y; }
+      if (was) { ST.manualPaused = false; ST.last = performance.now(); }
+      updatePlayBtn();
+    }
+  }, 400);
+});
+
+/* ════════════════════════════════════════════════════════════
+   12) Klavye
+   ════════════════════════════════════════════════════════════ */
 document.addEventListener('keydown', e => {
   if (viewerScreen.style.display === 'none') return;
-  // Don't fire on inputs
-  if (e.target.tagName === 'INPUT') return;
-
+  if (e.target.matches && e.target.matches('input[type=number], input[type=text], select, textarea')) return;
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const measure = S.mode === 'measure' && score.M > 0;
   switch (e.code) {
-    case 'Space':
-      e.preventDefault();
-      togglePlay();
-      break;
-    case 'ArrowUp':
-      e.preventDefault();
-      changeSpeed(10);
-      break;
-    case 'ArrowDown':
-      e.preventDefault();
-      changeSpeed(-10);
-      break;
-    case 'ArrowRight':
-      e.preventDefault();
-      pdfScroller.scrollTop += 200;
-      break;
-    case 'ArrowLeft':
-      e.preventDefault();
-      pdfScroller.scrollTop -= 200;
-      break;
-    case 'Home':
-      e.preventDefault();
-      pdfScroller.scrollTop = 0;
-      break;
+    case 'Space': e.preventDefault(); togglePlay(); break;
+    case 'ArrowUp':   e.preventDefault(); measure ? setBpm(S.bpm + (e.shiftKey ? 5 : 1), true) : changeSpeed(10); break;
+    case 'ArrowDown': e.preventDefault(); measure ? setBpm(S.bpm - (e.shiftKey ? 5 : 1), true) : changeSpeed(-10); break;
+    case 'ArrowRight': e.preventDefault(); measure ? seekToMeasure(Math.floor(displayBeat() / S.beats) + 1) : (scroller.scrollTop += 200); break;
+    case 'ArrowLeft':  e.preventDefault(); measure ? seekToMeasure(Math.floor(displayBeat() / S.beats) - 1) : (scroller.scrollTop -= 200); break;
+    case 'PageDown': e.preventDefault(); measure ? seekToSystem(currentSystemIndex() + 1) : (scroller.scrollTop += scroller.clientHeight * 0.8); break;
+    case 'PageUp':   e.preventDefault(); measure ? seekToSystem(currentSystemIndex() - 1) : (scroller.scrollTop -= scroller.clientHeight * 0.8); break;
+    case 'Home': e.preventDefault(); rewind(); break;
+    case 'KeyM': e.preventDefault(); metroBtn.click(); break;
   }
 });
 
-// Hide key hint on upload screen
-document.getElementById('keyHint').style.display = 'none';
+syncUI();
 </script>
 </body>
 </html>
