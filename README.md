@@ -36,6 +36,7 @@ True note-by-note following needs the score as data (MusicXML/MIDI) plus polypho
 - 🎤 **Mic-based smart pause** with a live level meter
 - 🎧 **Listen-and-follow tempo adaptation (beta)**
 - 🖱️ **Click a measure to jump there**; manual scrolling re-syncs the position
+- 🔁 **Loop a passage** — drag across measures with the mouse (or `Shift`+click, or tap 🔁 then the first and last measure on touch screens); playback, metronome and count-in wrap seamlessly and a lap counter shows how many times you've played it
 - ⌨️ **Keyboard shortcuts** — hands-free / pedal friendly
 - 🌑 **Dark theme**, single HTML file, no dependencies besides PDF.js
 
@@ -68,6 +69,10 @@ python3 -m http.server 8080
 | `PgDn` / `PgUp` | Next / previous staff line |
 | `Home` | Back to the start |
 | `M` | Metronome on/off |
+| `L` | Loop on/off (keeps the selected range) |
+| `Esc` | Remove the loop |
+| Mouse drag on the notes | Select measures to loop |
+| `Shift`+click | Loop from the current measure to the clicked one |
 
 **Mic status indicators:** 🟢 sound detected · 🟠 silence, scroll paused · orange bar under the toolbar counts down to the auto-pause.
 

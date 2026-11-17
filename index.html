@@ -114,6 +114,24 @@
       background: rgba(239,68,68,0.85); border-radius: 1px;
     }
     #measureHi.waiting #nowLine { background: rgba(251,146,60,0.9); }
+    #measureHi { z-index: 2; }
+
+    /* loop (döngü) aralığı */
+    .loopSeg {
+      position: absolute; top: 0; bottom: 0; z-index: 1; pointer-events: none; display: none; line-height: 1;
+      background: rgba(56,189,248,0.13);
+      border-top: 3px solid rgba(14,165,233,0.75); border-bottom: 3px solid rgba(14,165,233,0.75);
+    }
+    .loopSeg.start { border-left: 3px solid rgba(14,165,233,0.9); }
+    .loopSeg.end   { border-right: 3px solid rgba(14,165,233,0.9); }
+    .loopSeg.start::before {
+      content: '🔁'; position: absolute; top: 3px; left: 4px; font-size: 13px;
+      background: rgba(14,165,233,0.9); border-radius: 4px; padding: 1px 3px;
+    }
+    .loopSeg.selecting { background: rgba(56,189,248,0.24); border-style: dashed; }
+    #paper { -webkit-user-select: none; user-select: none; }
+    body.loop-dragging, body.loop-dragging .slice.system { cursor: ew-resize; }
+    .btn.loop.on { background: #0c4a6e; color: #7dd3fc; box-shadow: inset 0 0 0 1px #0284c7; }
 
     #countIn {
       position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%);
@@ -327,7 +345,9 @@
       <div class="keys">
         <kbd>Space</kbd> Başlat/duraklat · <kbd>↑</kbd><kbd>↓</kbd> BPM ±1 (<kbd>Shift</kbd> ±5) · <kbd>←</kbd><kbd>→</kbd> önceki/sonraki ölçü ·
         <kbd>PgUp</kbd><kbd>PgDn</kbd> önceki/sonraki satır · <kbd>Home</kbd> başa dön · <kbd>M</kbd> metronom · notaya <b>tıkla</b>: o ölçüye atla ·
-        fare/parmakla kaydırırsan konum buna göre güncellenir
+        fare/parmakla kaydırırsan konum buna göre güncellenir<br>
+        <b>Döngü:</b> notaların üzerinde fareyle <b>sürükle</b> → seçtiğin ölçüler tekrar tekrar çalınır · <kbd>Shift</kbd>+tıkla: bulunduğun ölçüden oraya döngü ·
+        <kbd>L</kbd> döngüyü aç/kapat · <kbd>Esc</kbd> döngüyü kaldır · dokunmatik ekranda: 🔁 düğmesine bas, sonra başlangıç ve bitiş ölçüsüne dokun
       </div>
     </div>
 
@@ -340,6 +360,11 @@
         <button class="btn sm" id="rewindBtn" title="Başa dön (Home)">⏮</button>
         <button class="btn play stopped" id="playBtn">▶ Başlat</button>
         <button class="btn sm" id="skipBtn" title="Sonraki satır (PgDn)">⏭</button>
+      </div>
+
+      <div class="cgroup">
+        <button class="btn loop" id="loopBtn" title="Döngü (L) — notaların üzerinde fareyle sürükleyerek de aralık seçebilirsin">🔁 Döngü</button>
+        <button class="btn sm" id="loopClearBtn" title="Döngüyü kaldır (Esc)" hidden>✕</button>
       </div>
 
       <div class="cgroup">
@@ -433,6 +458,10 @@ const ST = {
 const inCountIn   = () => ST.running && ST.ci !== null && ST.beat < ST.ci - 1e-9;
 const isMoving    = () => ST.running && !ST.manualPaused && !(ST.autoPaused && !inCountIn());
 const displayBeat = () => (ST.ci !== null && ST.beat < ST.ci) ? ST.ci : ST.beat;
+
+/* Döngü: a..b ölçüleri (dahil, 0 tabanlı). sel: 0 yok, 1 başlangıç bekleniyor, 2 bitiş bekleniyor */
+const LOOP = { a: -1, b: -1, on: false, sel: 0, laps: 0 };
+let loopDrag = null, suppressClick = false;
 
 /* ════════════════════════════════════════════════════════════
    Nota modeli
@@ -873,9 +902,21 @@ function advanceClock(now) {
   ST.last = now;
   if (!isMoving()) return dt;
   const ci = inCountIn();
+  const prev = ST.beat;
   ST.beat += dt * (S.bpm / 60) * (ci ? 1 : ST.rate);
   if (ST.ci !== null && ST.beat >= ST.ci) { ST.ci = null; lastSound = now; }
   else if (!ci && S.mode === 'speed') ST.scrollPx += S.speed * dt;
+  // döngü: bitişe ulaşınca başa sar (metronom vuruşları da kaymadan devam eder)
+  if (!ci && loopActive()) {
+    const [L0, L1] = loopBeats();
+    if (prev < L1 && ST.beat >= L1) {
+      const len = L1 - L0;
+      ST.beat -= len;
+      ST.nextClick -= len;
+      LOOP.laps++;
+      followResync();
+    }
+  }
   return dt;
 }
 
@@ -921,6 +962,7 @@ function renderFrame(dt) {
     }
     setHighlight(r.m, r.frac, waiting);
     info = 'Satır <b>' + (r.sys.i + 1) + '</b>/' + score.systems.length + ' · Ölçü <b>' + (r.m.g + 1) + '</b>/' + score.M;
+    if (loopActive()) info += ' · 🔁 <b>' + loopLabel() + '</b>' + (ST.running && LOOP.laps ? ' · ' + (LOOP.laps + 1) + '. tur' : '');
     if (ST.running && p >= score.M) finishPlayback();
   } else {
     if (score.hi) score.hi.style.display = 'none';
@@ -1007,6 +1049,11 @@ function startPlayback() {
   if (!score.ok) return;
   ensureAudio();
   if (S.mode === 'measure' && score.M && ST.beat / S.beats >= score.M - 0.01) ST.beat = 0;
+  if (loopActive()) {                           // döngü açıksa döngünün içinden başla
+    const [L0, L1] = loopBeats();
+    if (ST.beat < L0 - 1e-6 || ST.beat >= L1 - 0.01) ST.beat = L0;
+    LOOP.laps = 0;
+  }
   const ci = S.countIn * S.beats;
   let b0 = ST.beat;
   if (S.mode === 'measure') { if (ci > 0) b0 = Math.floor(b0 / S.beats + 1e-9) * S.beats; }
@@ -1050,17 +1097,138 @@ skipBtn.addEventListener('click', () => {
   else { scroller.scrollTop += 400; }
 });
 
-/* nota üzerine tıkla → o ölçüye atla */
-scroller.addEventListener('click', e => {
-  if (S.mode !== 'measure' || !score.ok) return;
-  const el = e.target.closest ? e.target.closest('.slice.system') : null;
-  if (!el) return;
+/* ekrandaki bir noktanın hangi ölçüye denk geldiği (yoksa -1) */
+function measureAtPoint(x, y) {
+  if (!score.ok) return -1;
+  const t = document.elementFromPoint(x, y);
+  const el = t && t.closest ? t.closest('.slice.system') : null;
+  if (!el) return -1;
   const sys = score.systems[+el.dataset.i];
+  if (!sys) return -1;
   const r = el.getBoundingClientRect();
-  const fx = (e.clientX - r.left) / r.width;
+  const fx = (x - r.left) / r.width;
   let k = 0;
   for (let i = 0; i < sys.n; i++) if (fx >= sys.bounds[i]) k = i;
-  seekToMeasure(sys.m0 + k);
+  return sys.m0 + k;
+}
+
+/* nota üzerine tıkla → o ölçüye atla (döngü seçimi sırasında: başlangıç/bitiş) */
+scroller.addEventListener('click', e => {
+  if (suppressClick) { suppressClick = false; return; }     // sürükleyerek seçimden sonra gelen tıklama
+  if (S.mode !== 'measure' || !score.ok) return;
+  const g = measureAtPoint(e.clientX, e.clientY);
+  if (g < 0) return;
+  if (LOOP.sel === 1) { LOOP.a = g; LOOP.sel = 2; drawLoop(); return; }
+  if (LOOP.sel === 2) { setLoop(LOOP.a, g); return; }
+  if (e.shiftKey) { setLoop(clamp(Math.floor(displayBeat() / S.beats), 0, score.M - 1), g); return; }
+  seekToMeasure(g);
+});
+
+/* ════════════════════════════════════════════════════════════
+   5b) Döngü (loop): fareyle sürükleyerek ölçü aralığı seç
+   ════════════════════════════════════════════════════════════ */
+const loopActive = () => LOOP.on && LOOP.a >= 0 && S.mode === 'measure' && score.ok && score.M > 0;
+const loopBeats  = () => [LOOP.a * S.beats, (LOOP.b + 1) * S.beats];
+const loopLabel  = () => LOOP.a === LOOP.b ? String(LOOP.a + 1) : (LOOP.a + 1) + '–' + (LOOP.b + 1);
+
+function setLoop(a, b) {
+  if (!score.ok || !score.M) return;
+  a = clamp(a, 0, score.M - 1); b = clamp(b, 0, score.M - 1);
+  if (a > b) { const t = a; a = b; b = t; }
+  LOOP.a = a; LOOP.b = b; LOOP.sel = 0; LOOP.laps = 0;
+  enableLoop(true);
+}
+function enableLoop(on) {
+  LOOP.on = on && LOOP.a >= 0;
+  if (LOOP.on) {
+    const [L0, L1] = loopBeats(), cur = displayBeat();
+    // çalmıyorsa ya da döngünün dışındaysa döngünün başına git
+    if (!ST.running || cur < L0 - 1e-6 || cur >= L1) seekToBeat(L0);
+  }
+  drawLoop();
+}
+function clearLoop() {
+  LOOP.a = LOOP.b = -1; LOOP.on = false; LOOP.sel = 0; LOOP.laps = 0;
+  drawLoop();
+}
+
+function drawLoop() {
+  if (score.ok) {
+    let a = -1, b = -1, cls = '';
+    if (S.mode === 'measure') {
+      if (loopDrag && loopDrag.active) { a = Math.min(loopDrag.g0, loopDrag.g1); b = Math.max(loopDrag.g0, loopDrag.g1); cls = ' selecting'; }
+      else if (LOOP.sel === 2) { a = b = LOOP.a; cls = ' selecting'; }
+      else if (LOOP.on && LOOP.a >= 0) { a = LOOP.a; b = LOOP.b; }
+    }
+    for (const s of score.systems) {
+      const lo = Math.max(a, s.m0), hi = Math.min(b, s.m0 + s.n - 1);
+      if (a < 0 || lo > hi) { if (s.loopEl) s.loopEl.style.display = 'none'; continue; }
+      if (!s.loopEl || s.loopEl.parentNode !== s.el) {
+        s.loopEl = document.createElement('div');
+        s.el.appendChild(s.loopEl);
+      }
+      const d = s.loopEl, ka = lo - s.m0, kb = hi - s.m0;
+      d.className = 'loopSeg' + cls + (lo === a ? ' start' : '') + (hi === b ? ' end' : '');
+      d.style.left = (s.bounds[ka] * 100) + '%';
+      d.style.width = ((s.bounds[kb + 1] - s.bounds[ka]) * 100) + '%';
+      d.style.display = 'block';
+    }
+  }
+  syncLoopUI();
+}
+
+function syncLoopUI() {
+  const btn = $('loopBtn'), clr = $('loopClearBtn');
+  const ok = S.mode === 'measure' && score.systems.length > 0;
+  btn.disabled = !ok;
+  btn.style.opacity = ok ? '1' : '0.5';
+  btn.classList.toggle('on', ok && (LOOP.on || LOOP.sel > 0));
+  btn.textContent = LOOP.sel === 1 ? '🔁 Başlangıç ölçüsüne tıkla'
+                  : LOOP.sel === 2 ? '🔁 Bitiş ölçüsüne tıkla'
+                  : LOOP.a >= 0    ? '🔁 ' + loopLabel() + (LOOP.on ? '' : ' (kapalı)')
+                  : '🔁 Döngü';
+  clr.hidden = !(LOOP.a >= 0 || LOOP.sel > 0);
+}
+
+$('loopBtn').addEventListener('click', () => {
+  if (S.mode !== 'measure' || !score.ok) return;
+  if (LOOP.sel > 0) { LOOP.sel = 0; if (LOOP.b < 0) LOOP.a = -1; drawLoop(); return; }   // seçimi iptal et
+  if (LOOP.a < 0) { LOOP.sel = 1; drawLoop(); return; }                                    // dokunarak seçim
+  enableLoop(!LOOP.on);
+});
+$('loopClearBtn').addEventListener('click', clearLoop);
+
+/* fareyle sürükleme (dokunmatikte sürükleme kaydırma olarak kalır) */
+scroller.addEventListener('pointerdown', e => {
+  suppressClick = false;
+  if (e.pointerType !== 'mouse' || e.button !== 0 || S.mode !== 'measure' || !score.ok) return;
+  const g = measureAtPoint(e.clientX, e.clientY);
+  if (g < 0) return;
+  loopDrag = { g0: g, g1: g, x: e.clientX, y: e.clientY, active: false };
+});
+window.addEventListener('pointermove', e => {
+  if (!loopDrag) return;
+  if (!loopDrag.active) {
+    if (Math.hypot(e.clientX - loopDrag.x, e.clientY - loopDrag.y) < 8) return;   // küçük titreme = tıklama
+    loopDrag.active = true;
+    document.body.classList.add('loop-dragging');
+  }
+  const g = measureAtPoint(e.clientX, e.clientY);
+  if (g >= 0 && g !== loopDrag.g1) { loopDrag.g1 = g; }
+  drawLoop();
+});
+window.addEventListener('pointerup', () => {
+  if (!loopDrag) return;
+  const d = loopDrag;
+  loopDrag = null;
+  document.body.classList.remove('loop-dragging');
+  if (d.active) { suppressClick = true; setLoop(d.g0, d.g1); }
+});
+window.addEventListener('pointercancel', () => {
+  if (!loopDrag) return;
+  loopDrag = null;
+  document.body.classList.remove('loop-dragging');
+  drawLoop();
 });
 
 /* ════════════════════════════════════════════════════════════
@@ -1411,6 +1579,7 @@ function syncUI() {
   levelThr.style.left = (clamp(S.sens / 40, 0, 1) * 100) + '%';
   syncLevelButtons();
   buildDotsIfNeeded();
+  drawLoop();
 }
 function buildDotsIfNeeded() { if (beatDotsEl.children.length !== S.beats) buildDots(); }
 
@@ -1471,6 +1640,7 @@ $('loadNewBtn').addEventListener('click', () => {
 async function loadPDF(file) {
   score.ok = false; buildToken++;
   stopPlayback();
+  clearLoop();                                   // yeni şarkı → eski döngü geçersiz
   uploadScreen.style.display = 'none';
   viewerScreen.style.display = 'flex';
   fileNameEl.textContent = file.name;
@@ -1539,6 +1709,11 @@ document.addEventListener('keydown', e => {
     case 'PageUp':   e.preventDefault(); measure ? seekToSystem(currentSystemIndex() - 1) : (scroller.scrollTop -= scroller.clientHeight * 0.8); break;
     case 'Home': e.preventDefault(); rewind(); break;
     case 'KeyM': e.preventDefault(); metroBtn.click(); break;
+    case 'KeyL': if (measure) { e.preventDefault(); $('loopBtn').click(); } break;
+    case 'Escape':
+      if (loopDrag) { loopDrag = null; document.body.classList.remove('loop-dragging'); drawLoop(); }
+      else if (LOOP.a >= 0 || LOOP.sel > 0) clearLoop();
+      break;
   }
 });
 
