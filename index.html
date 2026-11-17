@@ -1351,10 +1351,23 @@ let lastSound = 0;
 
 micBtn.addEventListener('click', () => { micActive ? stopMic() : startMic(); });
 
+let micStarting = false, micLastSignal = 0;
 async function startMic() {
+  if (micStarting || micActive) return;
+  micStarting = true;
+  micStatusText.textContent = 'Mik izni bekleniyor…';
   try {
     ensureAudio();
-    micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    // Konuşma için yapılan işlemler (yankı/gürültü bastırma) gitar sesini, özellikle
+    // metronom hoparlörden çalarken, kısıp "sessizlik" sanılmasına yol açar → kapat.
+    try {
+      micStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false }, video: false });
+    } catch (e) {
+      if (e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) throw e;
+      micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    }
+    micStarting = false;
+    micLastSignal = performance.now();
     micSource = actx.createMediaStreamSource(micStream);
     analyserNode = actx.createAnalyser();
     analyserNode.fftSize = 2048;
@@ -1367,8 +1380,11 @@ async function startMic() {
     micIntervalId = setInterval(micTick, 50);
     if (S.follow) followStart();
   } catch (err) {
-    alert('Mikrofon erişimi sağlanamadı:\n' + err.message);
+    micStarting = false;
+    micStatusText.textContent = 'Mik izni yok';
     if (S.follow) setFollow(false);
+    alert('Mikrofon erişimi sağlanamadı:\n' + (err && err.message ? err.message : err) +
+          '\n\nTarayıcının adres çubuğundaki mikrofon iznini kontrol et. Kaydırma mikrofonsuz devam eder.');
   }
 }
 function stopMic() {
@@ -1389,13 +1405,13 @@ function stopMic() {
 }
 
 const rmsBuf = { arr: null };
-function computeRMS() {
-  if (!rmsBuf.arr || rmsBuf.arr.length !== analyserNode.fftSize) rmsBuf.arr = new Uint8Array(analyserNode.fftSize);
+function computeRMS() {        // eski 0–128 ölçeğinde, ama kesirli (sessiz seslerde daha hassas)
+  if (!rmsBuf.arr || rmsBuf.arr.length !== analyserNode.fftSize) rmsBuf.arr = new Float32Array(analyserNode.fftSize);
   const buf = rmsBuf.arr;
-  analyserNode.getByteTimeDomainData(buf);
+  analyserNode.getFloatTimeDomainData(buf);
   let sum = 0;
-  for (let i = 0; i < buf.length; i++) { const v = buf[i] - 128; sum += v * v; }
-  return Math.sqrt(sum / buf.length);
+  for (let i = 0; i < buf.length; i++) sum += buf[i] * buf[i];
+  return Math.sqrt(sum / buf.length) * 128;
 }
 /* metronom tıkları mikrofonu kandırmasın */
 function blankedByClick() {
@@ -1411,6 +1427,18 @@ function micTick() {
   const rms = computeRMS();
   levelFill.style.width = (clamp(rms / 40, 0, 1) * 100) + '%';
   levelFill.style.background = rms >= S.sens ? '#4ade80' : '#6b7280';
+
+  // Gerçek bir mikrofon hiçbir zaman tam sıfır vermez (her zaman biraz gürültü olur).
+  // Tam sıfır = mikrofon engelli/bağlı değil → bunu "sessizlik" sayıp durma.
+  if (rms > 0.01) micLastSignal = now;
+  if (now - micLastSignal > 1500) {
+    if (ST.autoPaused) { ST.autoPaused = false; ST.last = now; resyncClicks(); followResync(); }
+    lastSound = now;
+    silenceBarFill.style.width = '0%';
+    micDot.className = 'mic-dot silent';
+    micStatusText.textContent = 'Mikrofondan ses gelmiyor';
+    return;
+  }
   if (blankedByClick()) return;
 
   if (inCountIn() || !ST.running) lastSound = now;
