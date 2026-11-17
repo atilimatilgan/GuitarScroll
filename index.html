@@ -302,15 +302,19 @@
       <div class="stitle">Mikrofon</div>
       <div class="srow">
         <span class="slabel">Hassasiyet eşiği</span>
-        <input type="range" id="sensSlider" min="1" max="40" value="8" style="width:140px">
+        <input type="range" id="sensSlider" min="0.5" max="40" step="0.5" value="8" style="width:140px">
         <div class="meter" title="Yeşil çubuk anlık ses seviyesi, kırmızı çizgi eşik"><div id="levelFill"></div><div id="levelThr"></div></div>
       </div>
+      <label class="chk">
+        <input type="checkbox" id="sensAutoChk" checked>
+        <span>Otomatik eşik (önerilen) — odanın gürültüsünü ölçüp eşiği kendisi ayarlar</span>
+      </label>
       <div class="srow">
         <span class="slabel">Sessizlikte durma</span>
         <input type="range" id="silSlider" min="5" max="50" value="15" style="width:140px">
         <span class="sval" id="silVal">1.5 sn</span>
       </div>
-      <div class="shint">Eşik, gitar çalarken yeşil çubuğun <b>kırmızı çizginin sağına</b> geçeceği, sessizken geçmeyeceği şekilde ayarlanmalı. Metronom açıksa kulaklık kullanın.</div>
+      <div class="shint">Çalarken yeşil çubuk <b>kırmızı çizginin sağına</b> geçmeli, sessizken geçmemeli. Otomatik eşik bunu kendisi ayarlar; yine de durup kalıyorsa kutuyu kaldırıp sürgüyü sola çek. Metronom açıksa kulaklık kullanın.</div>
       <label class="chk">
         <input type="checkbox" id="followChk">
         <span>🎧 Dinleyerek tempo takibi <b style="color:#fbbf24">(beta)</b></span>
@@ -404,7 +408,7 @@ const SKEY = 'guitarscroll.v2';
 const SONGS_KEY = 'guitarscroll.v2.songs';
 const DEFAULTS = {
   bpm: 70, beats: 4, level: 'mid', metro: false, vol: 60, countIn: 1,
-  sens: 8, silence: 1.5, readFrac: 0.20, mode: 'measure', speed: 60, follow: false
+  sens: 8, sensAuto: true, silence: 1.5, readFrac: 0.20, mode: 'measure', speed: 60, follow: false
 };
 const LEVELS = {
   beginner: { bpm: 50, metro: true,  countIn: 1, silence: 2.5, readFrac: 0.14,
@@ -1368,6 +1372,7 @@ async function startMic() {
     }
     micStarting = false;
     micLastSignal = performance.now();
+    noiseFloor = null;
     micSource = actx.createMediaStreamSource(micStream);
     analyserNode = actx.createAnalyser();
     analyserNode.fftSize = 2048;
@@ -1421,12 +1426,33 @@ function blankedByClick() {
   return false;
 }
 
+/* Otomatik eşik: odanın gürültü seviyesini sürekli ölç, eşiği onun biraz üstüne koy.
+   Gürültü tahmini sessizlikte hızla iner, yalnızca "sessiz" sayılan anlarda yavaşça
+   yükselir; yani çalarken eşik yukarı kaçmaz. */
+let noiseFloor = null;
+const AUTO_MIN = 0.4, AUTO_MAX = 25;
+function micThreshold() {
+  if (!S.sensAuto) return S.sens;
+  if (noiseFloor === null) return AUTO_MIN * 2;
+  return clamp(Math.max(noiseFloor * 2.5, noiseFloor + 0.5), AUTO_MIN, AUTO_MAX);
+}
+function trackNoise(rms) {
+  if (noiseFloor === null) { noiseFloor = rms; return; }
+  if (rms < noiseFloor) noiseFloor += (rms - noiseFloor) * 0.3;
+  else if (rms < micThreshold()) noiseFloor += (rms - noiseFloor) * 0.01;
+}
+// metre ölçeği: düşük seviyeler de görünsün diye karekök (0–40)
+const meterPos = v => clamp(Math.sqrt(Math.max(v, 0) / 40), 0, 1) * 100;
+function drawThresholdLine() { levelThr.style.left = meterPos(micThreshold()) + '%'; }
+
 function micTick() {
   if (!micActive || !analyserNode) return;
   const now = performance.now();
   const rms = computeRMS();
-  levelFill.style.width = (clamp(rms / 40, 0, 1) * 100) + '%';
-  levelFill.style.background = rms >= S.sens ? '#4ade80' : '#6b7280';
+  const thr = micThreshold();
+  levelFill.style.width = meterPos(rms) + '%';
+  levelFill.style.background = rms >= thr ? '#4ade80' : '#6b7280';
+  if (S.sensAuto) drawThresholdLine();
 
   // Gerçek bir mikrofon hiçbir zaman tam sıfır vermez (her zaman biraz gürültü olur).
   // Tam sıfır = mikrofon engelli/bağlı değil → bunu "sessizlik" sayıp durma.
@@ -1440,10 +1466,11 @@ function micTick() {
     return;
   }
   if (blankedByClick()) return;
+  trackNoise(rms);
 
   if (inCountIn() || !ST.running) lastSound = now;
 
-  if (rms >= S.sens) {
+  if (rms >= thr) {
     lastSound = now;
     if (ST.autoPaused) { ST.autoPaused = false; ST.last = now; resyncClicks(); followResync(); }
     silenceBarFill.style.width = '0%';
@@ -1534,7 +1561,7 @@ function followTick() {
   fol.an.getFloatTimeDomainData(fol.td);
   let s = 0; for (let i = 0; i < fol.td.length; i++) s += fol.td[i] * fol.td[i];
   const rmsF = Math.sqrt(s / fol.td.length);
-  if (flux > thr && rmsF > (S.sens / 128) * 0.45 && now - fol.lastOn > 95 && !blankedByClick()) {
+  if (flux > thr && rmsF > (micThreshold() / 128) * 0.45 && now - fol.lastOn > 95 && !blankedByClick()) {
     fol.lastOn = now;
     onNoteOnset(now);
   }
@@ -1604,7 +1631,9 @@ function syncUI() {
   $('readSlider').value = Math.round(S.readFrac * 100);
   $('readVal').textContent = '%' + Math.round(S.readFrac * 100);
   $('followChk').checked = S.follow;
-  levelThr.style.left = (clamp(S.sens / 40, 0, 1) * 100) + '%';
+  $('sensAutoChk').checked = S.sensAuto;
+  $('sensSlider').style.opacity = S.sensAuto ? '0.45' : '1';
+  drawThresholdLine();
   syncLevelButtons();
   buildDotsIfNeeded();
   drawLoop();
@@ -1632,7 +1661,12 @@ document.querySelectorAll('#modeSeg button').forEach(b => b.addEventListener('cl
   saveSettings(); syncUI();
 }));
 $('volSlider').addEventListener('input', e => { S.vol = +e.target.value; if (masterGain) masterGain.gain.value = S.vol / 100; saveSettings(); });
-$('sensSlider').addEventListener('input', e => { S.sens = +e.target.value; levelThr.style.left = (clamp(S.sens / 40, 0, 1) * 100) + '%'; saveSettings(); });
+$('sensSlider').addEventListener('input', e => { S.sens = +e.target.value; S.sensAuto = false; saveSettings(); syncUI(); });
+$('sensAutoChk').addEventListener('change', e => {
+  S.sensAuto = e.target.checked;
+  if (!S.sensAuto && noiseFloor !== null) S.sens = clamp(Math.round(micThreshold() * 2) / 2, 0.5, 40);  // elle ayara bulunduğu yerden başla
+  saveSettings(); syncUI();
+});
 $('silSlider').addEventListener('input', e => { S.silence = +e.target.value / 10; $('silVal').textContent = S.silence.toFixed(1) + ' sn'; S.level = null; syncLevelButtons(); saveSettings(); });
 $('readSlider').addEventListener('input', e => { S.readFrac = +e.target.value / 100; dirty = true; $('readVal').textContent = '%' + e.target.value; S.level = null; syncLevelButtons(); saveSettings(); });
 $('speedDownBtn').addEventListener('click', () => changeSpeed(-1));
